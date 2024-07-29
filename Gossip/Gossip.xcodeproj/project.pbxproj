@@ -1,0 +1,569 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0A6722DB2C51A7C000C91A97 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722DA2C51A7C000C91A97 /* AppDelegate.swift */; };
+		0A6722DE2C51E49A00C91A97 /* NearbyContainerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722DD2C51E49A00C91A97 /* NearbyContainerView.swift */; };
+		0A6722E02C51E4B100C91A97 /* MeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722DF2C51E4B100C91A97 /* MeView.swift */; };
+		0A6722E72C52066400C91A97 /* CircularImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722E62C52066400C91A97 /* CircularImageView.swift */; };
+		0A6722EF2C52071600C91A97 /* WideIdExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722EC2C52071600C91A97 /* WideIdExtension.swift */; };
+		0A6722F02C52071600C91A97 /* BlobCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722ED2C52071600C91A97 /* BlobCache.swift */; };
+		0A6722F12C52071600C91A97 /* BlobLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722EE2C52071600C91A97 /* BlobLoader.swift */; };
+		0A6722F92C52101E00C91A97 /* MessageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722F72C52101E00C91A97 /* MessageView.swift */; };
+		0A6722FA2C52101E00C91A97 /* MessageListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722F82C52101E00C91A97 /* MessageListView.swift */; };
+		0A6722FC2C52125300C91A97 /* NearbyPersonDetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6722FB2C52125300C91A97 /* NearbyPersonDetailsView.swift */; };
+		0A6E30842C52C1190098D704 /* WideButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A6E30822C52C1190098D704 /* WideButton.swift */; };
+		0A9F22CE2C42EC6D00C2FA92 /* GossipApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9F22CD2C42EC6D00C2FA92 /* GossipApp.swift */; };
+		0A9F22D02C42EC6D00C2FA92 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9F22CF2C42EC6D00C2FA92 /* ContentView.swift */; };
+		0A9F22D22C42EC6E00C2FA92 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A9F22D12C42EC6E00C2FA92 /* Assets.xcassets */; };
+		0A9F22D52C42EC6E00C2FA92 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0A9F22D42C42EC6E00C2FA92 /* Preview Assets.xcassets */; };
+		0A9F22F02C42F39400C2FA92 /* libgossip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9F22EA2C42F2C700C2FA92 /* libgossip.swift */; };
+		0AACDFCB2C53F9C200989D1A /* ControlsContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFCA2C53F9C200989D1A /* ControlsContainer.swift */; };
+		0AACDFCE2C54D42F00989D1A /* DataExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFCD2C54D42F00989D1A /* DataExtension.swift */; };
+		0AACDFD02C5712EE00989D1A /* CollectionDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFCF2C5712EE00989D1A /* CollectionDelegate.swift */; };
+		0AACDFD22C57179900989D1A /* BlobImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD12C57179900989D1A /* BlobImage.swift */; };
+		0AACDFD42C57188E00989D1A /* NearbyPersonRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD32C57188E00989D1A /* NearbyPersonRow.swift */; };
+		0AEDD0FB2C44674700F46E5B /* liblibgossip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A9F22F82C42FBEE00C2FA92 /* liblibgossip.a */; };
+		0AEDD0FD2C4CC77100F46E5B /* AppHostContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */; };
+		0AEDD0FF2C4CC83400F46E5B /* DeviceApiProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD0FE2C4CC83400F46E5B /* DeviceApiProvider.swift */; };
+		0AEDD1022C4CCBBB00F46E5B /* GlobalViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD1012C4CCBBB00F46E5B /* GlobalViewModel.swift */; };
+		0AEDD1082C4CCE2100F46E5B /* BLEGossipBroadcaster.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD1032C4CCE2100F46E5B /* BLEGossipBroadcaster.swift */; };
+		0AEDD1092C4CCE2100F46E5B /* BLEGossipScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD1042C4CCE2100F46E5B /* BLEGossipScanner.swift */; };
+		0AEDD10A2C4CCE2100F46E5B /* CBUUIDExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD1052C4CCE2100F46E5B /* CBUUIDExtension.swift */; };
+		0AEDD10B2C4CCE2100F46E5B /* UUIDExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD1062C4CCE2100F46E5B /* UUIDExtension.swift */; };
+		0AEDD10D2C4CCF5A00F46E5B /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0AEDD10C2C4CCF5A00F46E5B /* SystemConfiguration.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0A9F22F72C42FBEE00C2FA92 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0A9F22F22C42FBEE00C2FA92 /* libgossip.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = CA001958F6B19721AEC8B341;
+			remoteInfo = "libgossip.a (static library)";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0A6722DA2C51A7C000C91A97 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		0A6722DD2C51E49A00C91A97 /* NearbyContainerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyContainerView.swift; sourceTree = "<group>"; };
+		0A6722DF2C51E4B100C91A97 /* MeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeView.swift; sourceTree = "<group>"; };
+		0A6722E62C52066400C91A97 /* CircularImageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CircularImageView.swift; sourceTree = "<group>"; };
+		0A6722EC2C52071600C91A97 /* WideIdExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WideIdExtension.swift; sourceTree = "<group>"; };
+		0A6722ED2C52071600C91A97 /* BlobCache.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlobCache.swift; sourceTree = "<group>"; };
+		0A6722EE2C52071600C91A97 /* BlobLoader.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BlobLoader.swift; sourceTree = "<group>"; };
+		0A6722F72C52101E00C91A97 /* MessageView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageView.swift; sourceTree = "<group>"; };
+		0A6722F82C52101E00C91A97 /* MessageListView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MessageListView.swift; sourceTree = "<group>"; };
+		0A6722FB2C52125300C91A97 /* NearbyPersonDetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPersonDetailsView.swift; sourceTree = "<group>"; };
+		0A6E30822C52C1190098D704 /* WideButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = WideButton.swift; sourceTree = "<group>"; };
+		0A9F22CA2C42EC6D00C2FA92 /* Gossip.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Gossip.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0A9F22CD2C42EC6D00C2FA92 /* GossipApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GossipApp.swift; sourceTree = "<group>"; };
+		0A9F22CF2C42EC6D00C2FA92 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		0A9F22D12C42EC6E00C2FA92 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		0A9F22D42C42EC6E00C2FA92 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		0A9F22EA2C42F2C700C2FA92 /* libgossip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = libgossip.swift; path = ../libgossip/bindings/libgossip.swift; sourceTree = "<group>"; };
+		0A9F22EE2C42F38300C2FA92 /* libgossipFFI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = libgossipFFI.h; path = ../libgossip/bindings/libgossipFFI.h; sourceTree = "<group>"; };
+		0A9F22EF2C42F38C00C2FA92 /* libgossipFFI.modulemap */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = "sourcecode.module-map"; name = libgossipFFI.modulemap; path = ../libgossip/bindings/libgossipFFI.modulemap; sourceTree = "<group>"; };
+		0A9F22F22C42FBEE00C2FA92 /* libgossip.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libgossip.xcodeproj; path = ../libgossip/libgossip.xcodeproj; sourceTree = "<group>"; };
+		0AACDFCA2C53F9C200989D1A /* ControlsContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControlsContainer.swift; sourceTree = "<group>"; };
+		0AACDFCD2C54D42F00989D1A /* DataExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataExtension.swift; sourceTree = "<group>"; };
+		0AACDFCF2C5712EE00989D1A /* CollectionDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionDelegate.swift; sourceTree = "<group>"; };
+		0AACDFD12C57179900989D1A /* BlobImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobImage.swift; sourceTree = "<group>"; };
+		0AACDFD32C57188E00989D1A /* NearbyPersonRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NearbyPersonRow.swift; sourceTree = "<group>"; };
+		0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHostContainer.swift; sourceTree = "<group>"; };
+		0AEDD0FE2C4CC83400F46E5B /* DeviceApiProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceApiProvider.swift; sourceTree = "<group>"; };
+		0AEDD1012C4CCBBB00F46E5B /* GlobalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalViewModel.swift; sourceTree = "<group>"; };
+		0AEDD1032C4CCE2100F46E5B /* BLEGossipBroadcaster.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BLEGossipBroadcaster.swift; sourceTree = "<group>"; };
+		0AEDD1042C4CCE2100F46E5B /* BLEGossipScanner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BLEGossipScanner.swift; sourceTree = "<group>"; };
+		0AEDD1052C4CCE2100F46E5B /* CBUUIDExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CBUUIDExtension.swift; sourceTree = "<group>"; };
+		0AEDD1062C4CCE2100F46E5B /* UUIDExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UUIDExtension.swift; sourceTree = "<group>"; };
+		0AEDD10C2C4CCF5A00F46E5B /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0A9F22C72C42EC6D00C2FA92 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0AEDD10D2C4CCF5A00F46E5B /* SystemConfiguration.framework in Frameworks */,
+				0AEDD0FB2C44674700F46E5B /* liblibgossip.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0A6722E42C52064A00C91A97 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				0A6722FD2C52AA3C00C91A97 /* Me */,
+				0A6722F52C520FCF00C91A97 /* Messaging */,
+				0A6722E92C5206E100C91A97 /* Bridge */,
+				0A6722E82C5206BD00C91A97 /* Nearby */,
+				0A6722E52C52065200C91A97 /* Util */,
+				0AACDFCA2C53F9C200989D1A /* ControlsContainer.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		0A6722E52C52065200C91A97 /* Util */ = {
+			isa = PBXGroup;
+			children = (
+				0A6E30822C52C1190098D704 /* WideButton.swift */,
+				0A6722E62C52066400C91A97 /* CircularImageView.swift */,
+				0AACDFD12C57179900989D1A /* BlobImage.swift */,
+			);
+			path = Util;
+			sourceTree = "<group>";
+		};
+		0A6722E82C5206BD00C91A97 /* Nearby */ = {
+			isa = PBXGroup;
+			children = (
+				0AACDFD32C57188E00989D1A /* NearbyPersonRow.swift */,
+				0A6722DD2C51E49A00C91A97 /* NearbyContainerView.swift */,
+				0A6722FB2C52125300C91A97 /* NearbyPersonDetailsView.swift */,
+			);
+			path = Nearby;
+			sourceTree = "<group>";
+		};
+		0A6722E92C5206E100C91A97 /* Bridge */ = {
+			isa = PBXGroup;
+			children = (
+				0A6722ED2C52071600C91A97 /* BlobCache.swift */,
+				0A6722EE2C52071600C91A97 /* BlobLoader.swift */,
+				0A6722EC2C52071600C91A97 /* WideIdExtension.swift */,
+				0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */,
+				0AACDFCD2C54D42F00989D1A /* DataExtension.swift */,
+				0AACDFCF2C5712EE00989D1A /* CollectionDelegate.swift */,
+			);
+			path = Bridge;
+			sourceTree = "<group>";
+		};
+		0A6722F52C520FCF00C91A97 /* Messaging */ = {
+			isa = PBXGroup;
+			children = (
+				0A6722F82C52101E00C91A97 /* MessageListView.swift */,
+				0A6722F72C52101E00C91A97 /* MessageView.swift */,
+			);
+			path = Messaging;
+			sourceTree = "<group>";
+		};
+		0A6722FD2C52AA3C00C91A97 /* Me */ = {
+			isa = PBXGroup;
+			children = (
+				0A6722DF2C51E4B100C91A97 /* MeView.swift */,
+			);
+			path = Me;
+			sourceTree = "<group>";
+		};
+		0A9F22C12C42EC6D00C2FA92 = {
+			isa = PBXGroup;
+			children = (
+				0A9F22F22C42FBEE00C2FA92 /* libgossip.xcodeproj */,
+				0A9F22EF2C42F38C00C2FA92 /* libgossipFFI.modulemap */,
+				0A9F22EE2C42F38300C2FA92 /* libgossipFFI.h */,
+				0A9F22EA2C42F2C700C2FA92 /* libgossip.swift */,
+				0A9F22CC2C42EC6D00C2FA92 /* Gossip */,
+				0A9F22CB2C42EC6D00C2FA92 /* Products */,
+				0A9F22E12C42ED2300C2FA92 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		0A9F22CB2C42EC6D00C2FA92 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0A9F22CA2C42EC6D00C2FA92 /* Gossip.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0A9F22CC2C42EC6D00C2FA92 /* Gossip */ = {
+			isa = PBXGroup;
+			children = (
+				0A6722E42C52064A00C91A97 /* Views */,
+				0AEDD1072C4CCE2100F46E5B /* Bluetooth */,
+				0AEDD1002C4CCBAC00F46E5B /* ViewModels */,
+				0A9F22CD2C42EC6D00C2FA92 /* GossipApp.swift */,
+				0A9F22CF2C42EC6D00C2FA92 /* ContentView.swift */,
+				0A9F22D12C42EC6E00C2FA92 /* Assets.xcassets */,
+				0A9F22D32C42EC6E00C2FA92 /* Preview Content */,
+				0AEDD0FE2C4CC83400F46E5B /* DeviceApiProvider.swift */,
+				0A6722DA2C51A7C000C91A97 /* AppDelegate.swift */,
+			);
+			path = Gossip;
+			sourceTree = "<group>";
+		};
+		0A9F22D32C42EC6E00C2FA92 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				0A9F22D42C42EC6E00C2FA92 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		0A9F22E12C42ED2300C2FA92 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0AEDD10C2C4CCF5A00F46E5B /* SystemConfiguration.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		0A9F22F32C42FBEE00C2FA92 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0A9F22F82C42FBEE00C2FA92 /* liblibgossip.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0AEDD1002C4CCBAC00F46E5B /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				0AEDD1012C4CCBBB00F46E5B /* GlobalViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		0AEDD1072C4CCE2100F46E5B /* Bluetooth */ = {
+			isa = PBXGroup;
+			children = (
+				0AEDD1032C4CCE2100F46E5B /* BLEGossipBroadcaster.swift */,
+				0AEDD1042C4CCE2100F46E5B /* BLEGossipScanner.swift */,
+				0AEDD1052C4CCE2100F46E5B /* CBUUIDExtension.swift */,
+				0AEDD1062C4CCE2100F46E5B /* UUIDExtension.swift */,
+			);
+			path = Bluetooth;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0A9F22C92C42EC6D00C2FA92 /* Gossip */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0A9F22D82C42EC6E00C2FA92 /* Build configuration list for PBXNativeTarget "Gossip" */;
+			buildPhases = (
+				0A9F22C62C42EC6D00C2FA92 /* Sources */,
+				0A9F22C72C42EC6D00C2FA92 /* Frameworks */,
+				0A9F22C82C42EC6D00C2FA92 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Gossip;
+			productName = Gossip;
+			productReference = 0A9F22CA2C42EC6D00C2FA92 /* Gossip.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0A9F22C22C42EC6D00C2FA92 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1540;
+				LastUpgradeCheck = 1540;
+				TargetAttributes = {
+					0A9F22C92C42EC6D00C2FA92 = {
+						CreatedOnToolsVersion = 15.4;
+					};
+				};
+			};
+			buildConfigurationList = 0A9F22C52C42EC6D00C2FA92 /* Build configuration list for PBXProject "Gossip" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 0A9F22C12C42EC6D00C2FA92;
+			productRefGroup = 0A9F22CB2C42EC6D00C2FA92 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 0A9F22F32C42FBEE00C2FA92 /* Products */;
+					ProjectRef = 0A9F22F22C42FBEE00C2FA92 /* libgossip.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				0A9F22C92C42EC6D00C2FA92 /* Gossip */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0A9F22F82C42FBEE00C2FA92 /* liblibgossip.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = liblibgossip.a;
+			remoteRef = 0A9F22F72C42FBEE00C2FA92 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		0A9F22C82C42EC6D00C2FA92 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A9F22D52C42EC6E00C2FA92 /* Preview Assets.xcassets in Resources */,
+				0A9F22D22C42EC6E00C2FA92 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0A9F22C62C42EC6D00C2FA92 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0A6722DB2C51A7C000C91A97 /* AppDelegate.swift in Sources */,
+				0AEDD10A2C4CCE2100F46E5B /* CBUUIDExtension.swift in Sources */,
+				0A9F22F02C42F39400C2FA92 /* libgossip.swift in Sources */,
+				0AACDFCB2C53F9C200989D1A /* ControlsContainer.swift in Sources */,
+				0A9F22D02C42EC6D00C2FA92 /* ContentView.swift in Sources */,
+				0AEDD1082C4CCE2100F46E5B /* BLEGossipBroadcaster.swift in Sources */,
+				0A6722F12C52071600C91A97 /* BlobLoader.swift in Sources */,
+				0AEDD1092C4CCE2100F46E5B /* BLEGossipScanner.swift in Sources */,
+				0A6722FA2C52101E00C91A97 /* MessageListView.swift in Sources */,
+				0AEDD1022C4CCBBB00F46E5B /* GlobalViewModel.swift in Sources */,
+				0AACDFD42C57188E00989D1A /* NearbyPersonRow.swift in Sources */,
+				0A6722EF2C52071600C91A97 /* WideIdExtension.swift in Sources */,
+				0A6722DE2C51E49A00C91A97 /* NearbyContainerView.swift in Sources */,
+				0AACDFCE2C54D42F00989D1A /* DataExtension.swift in Sources */,
+				0AACDFD22C57179900989D1A /* BlobImage.swift in Sources */,
+				0A6722F92C52101E00C91A97 /* MessageView.swift in Sources */,
+				0A9F22CE2C42EC6D00C2FA92 /* GossipApp.swift in Sources */,
+				0A6722E72C52066400C91A97 /* CircularImageView.swift in Sources */,
+				0AEDD0FD2C4CC77100F46E5B /* AppHostContainer.swift in Sources */,
+				0AACDFD02C5712EE00989D1A /* CollectionDelegate.swift in Sources */,
+				0A6722FC2C52125300C91A97 /* NearbyPersonDetailsView.swift in Sources */,
+				0AEDD10B2C4CCE2100F46E5B /* UUIDExtension.swift in Sources */,
+				0A6E30842C52C1190098D704 /* WideButton.swift in Sources */,
+				0A6722F02C52071600C91A97 /* BlobCache.swift in Sources */,
+				0AEDD0FF2C4CC83400F46E5B /* DeviceApiProvider.swift in Sources */,
+				0A6722E02C51E4B100C91A97 /* MeView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0A9F22D62C42EC6E00C2FA92 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = "$(SRCROOT)/../libgossip/bindings";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/../libgossip/bindings/libgossipFFI.h";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				"USER_HEADER_SEARCH_PATHS[arch=*]" = "$(SRCROOT)/../libgossip/bindings";
+			};
+			name = Debug;
+		};
+		0A9F22D72C42EC6E00C2FA92 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				"HEADER_SEARCH_PATHS[arch=*]" = "$(SRCROOT)/../libgossip/bindings";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OBJC_BRIDGING_HEADER = "$(SRCROOT)/../libgossip/bindings/libgossipFFI.h";
+				"USER_HEADER_SEARCH_PATHS[arch=*]" = "$(SRCROOT)/../libgossip/bindings";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		0A9F22D92C42EC6E00C2FA92 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Gossip/Preview Content\"";
+				DEVELOPMENT_TEAM = 2GU457KX2V;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = kevco.Gossip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		0A9F22DA2C42EC6E00C2FA92 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Gossip/Preview Content\"";
+				DEVELOPMENT_TEAM = 2GU457KX2V;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = kevco.Gossip;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0A9F22C52C42EC6D00C2FA92 /* Build configuration list for PBXProject "Gossip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A9F22D62C42EC6E00C2FA92 /* Debug */,
+				0A9F22D72C42EC6E00C2FA92 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0A9F22D82C42EC6E00C2FA92 /* Build configuration list for PBXNativeTarget "Gossip" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0A9F22D92C42EC6E00C2FA92 /* Debug */,
+				0A9F22DA2C42EC6E00C2FA92 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0A9F22C22C42EC6D00C2FA92 /* Project object */;
+}

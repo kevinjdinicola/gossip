@@ -1,0 +1,4 @@
+target
+uniffi-bindgen/target
+testtmp
+libgossip.xcodeproj/xcuserdata
