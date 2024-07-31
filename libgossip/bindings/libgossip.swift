@@ -504,6 +504,8 @@ public protocol AppHostProtocol : AnyObject {
     
     func global(viewModel: GlobalViewModel)  -> Global
     
+    func printStats() 
+    
     func setResetFlag() 
     
     func shutdown() 
@@ -572,6 +574,12 @@ open func global(viewModel: GlobalViewModel) -> Global {
         FfiConverterTypeGlobalViewModel.lower(viewModel),$0
     )
 })
+}
+    
+open func printStats() {try! rustCall() {
+    uniffi_libgossip_fn_method_apphost_print_stats(self.uniffiClonePointer(),$0
+    )
+}
 }
     
 open func setResetFlag() {try! rustCall() {
@@ -1128,7 +1136,7 @@ public func FfiConverterTypeBLEGossipScanner_lower(_ value: BleGossipScanner) ->
 
 public protocol BlobDataDispatcherProtocol : AnyObject {
     
-    func hydrate(bdr: BlobDataResponder) 
+    func hydrate(bdr: BlobDataResponder) async 
     
 }
 
@@ -1173,11 +1181,22 @@ open class BlobDataDispatcher:
     
 
     
-open func hydrate(bdr: BlobDataResponder) {try! rustCall() {
-    uniffi_libgossip_fn_method_blobdatadispatcher_hydrate(self.uniffiClonePointer(),
-        FfiConverterTypeBlobDataResponder.lower(bdr),$0
-    )
-}
+open func hydrate(bdr: BlobDataResponder)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_blobdatadispatcher_hydrate(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeBlobDataResponder.lower(bdr)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
 }
     
 
@@ -1230,9 +1249,9 @@ public func FfiConverterTypeBlobDataDispatcher_lower(_ value: BlobDataDispatcher
 
 public protocol BlobDataResponder : AnyObject {
     
-    func update(state: BlobDataState) 
+    func update(state: BlobDataState) async 
     
-    func hash()  -> WideId?
+    func hash() async  -> WideId?
     
 }
 
@@ -1277,18 +1296,40 @@ open class BlobDataResponderImpl:
     
 
     
-open func update(state: BlobDataState) {try! rustCall() {
-    uniffi_libgossip_fn_method_blobdataresponder_update(self.uniffiClonePointer(),
-        FfiConverterTypeBlobDataState.lower(state),$0
-    )
-}
+open func update(state: BlobDataState)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_blobdataresponder_update(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeBlobDataState.lower(state)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
 }
     
-open func hash() -> WideId? {
-    return try!  FfiConverterOptionTypeWideId.lift(try! rustCall() {
-    uniffi_libgossip_fn_method_blobdataresponder_hash(self.uniffiClonePointer(),$0
-    )
-})
+open func hash()async  -> WideId? {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_blobdataresponder_hash(
+                    self.uniffiClonePointer()
+                    
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_rust_buffer,
+            completeFunc: ffi_libgossip_rust_future_complete_rust_buffer,
+            freeFunc: ffi_libgossip_rust_future_free_rust_buffer,
+            liftFunc: FfiConverterOptionTypeWideId.lift,
+            errorHandler: nil
+            
+        )
 }
     
 
@@ -1304,48 +1345,82 @@ fileprivate struct UniffiCallbackInterfaceBlobDataResponder {
         update: { (
             uniffiHandle: UInt64,
             state: RustBuffer,
-            uniffiOutReturn: UnsafeMutableRawPointer,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
         ) in
             let makeCall = {
-                () throws -> () in
+                () async throws -> () in
                 guard let uniffiObj = try? FfiConverterTypeBlobDataResponder.handleMap.get(handle: uniffiHandle) else {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
-                return uniffiObj.update(
+                return await uniffiObj.update(
                      state: try FfiConverterTypeBlobDataState.lift(state)
                 )
             }
 
-            
-            let writeReturn = { () }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
                 makeCall: makeCall,
-                writeReturn: writeReturn
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
             )
+            uniffiOutReturn.pointee = uniffiForeignFuture
         },
         hash: { (
             uniffiHandle: UInt64,
-            uniffiOutReturn: UnsafeMutablePointer<RustBuffer>,
-            uniffiCallStatus: UnsafeMutablePointer<RustCallStatus>
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteRustBuffer,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
         ) in
             let makeCall = {
-                () throws -> WideId? in
+                () async throws -> WideId? in
                 guard let uniffiObj = try? FfiConverterTypeBlobDataResponder.handleMap.get(handle: uniffiHandle) else {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
-                return uniffiObj.hash(
+                return await uniffiObj.hash(
                 )
             }
 
-            
-            let writeReturn = { uniffiOutReturn.pointee = FfiConverterOptionTypeWideId.lower($0) }
-            uniffiTraitInterfaceCall(
-                callStatus: uniffiCallStatus,
+            let uniffiHandleSuccess = { (returnValue: WideId?) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructRustBuffer(
+                        returnValue: FfiConverterOptionTypeWideId.lower(returnValue),
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructRustBuffer(
+                        returnValue: RustBuffer.empty(),
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
                 makeCall: makeCall,
-                writeReturn: writeReturn
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
             )
+            uniffiOutReturn.pointee = uniffiForeignFuture
         },
         uniffiFree: { (uniffiHandle: UInt64) -> () in
             let result = try? FfiConverterTypeBlobDataResponder.handleMap.remove(handle: uniffiHandle)
@@ -1590,6 +1665,8 @@ public func FfiConverterTypeDeviceApiServiceProvider_lower(_ value: DeviceApiSer
 
 public protocol GlobalProtocol : AnyObject {
     
+    func leaveNearbyGroup() async throws 
+    
     func loadNearbyPayload(hash: WideId, collectionDelegate: LoadCollectionDelegate) async 
     
     func sendMessage(text: String, payloadDir: String?) async 
@@ -1644,6 +1721,23 @@ open class Global:
 
     
 
+    
+open func leaveNearbyGroup()async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_global_leave_nearby_group(
+                    self.uniffiClonePointer()
+                    
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGossipError__as_error.lift
+        )
+}
     
 open func loadNearbyPayload(hash: WideId, collectionDelegate: LoadCollectionDelegate)async  {
     return
@@ -3771,6 +3865,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_libgossip_checksum_method_apphost_global() != 14824) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_libgossip_checksum_method_apphost_print_stats() != 39813) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_libgossip_checksum_method_apphost_set_reset_flag() != 35834) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3801,19 +3898,22 @@ private var initializationResult: InitializationResult = {
     if (uniffi_libgossip_checksum_method_blegossipscanner_set_delegate() != 65126) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_blobdatadispatcher_hydrate() != 16665) {
+    if (uniffi_libgossip_checksum_method_blobdatadispatcher_hydrate() != 64004) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_blobdataresponder_update() != 21429) {
+    if (uniffi_libgossip_checksum_method_blobdataresponder_update() != 3853) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_blobdataresponder_hash() != 36323) {
+    if (uniffi_libgossip_checksum_method_blobdataresponder_hash() != 55646) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_libgossip_checksum_method_deviceapiserviceprovider_ble_scanner() != 13248) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_libgossip_checksum_method_deviceapiserviceprovider_ble_broadcaster() != 57331) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_global_leave_nearby_group() != 56528) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_libgossip_checksum_method_global_load_nearby_payload() != 46010) {

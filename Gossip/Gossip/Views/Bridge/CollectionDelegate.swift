@@ -17,6 +17,7 @@ class CollectionDelegate: ObservableObject, LoadCollectionDelegate {
         self.state = state;
         if case let .loaded(data) = state {
             blobs = data
+            print("payload loaded \(blobs)")
         }
     }
     

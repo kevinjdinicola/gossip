@@ -34,10 +34,15 @@ struct NearbyPersonRow: View {
             Spacer()
         }
         .onChange(of: data.pic) {
-            picData.loadHash(hash: data.pic)
+            Task {
+                await picData.loadHash(hash: data.pic)
+            }
+            
         }
         .onAppear() {
-            picData.loadHash(hash: data.pic)
+            Task {
+                await picData.loadHash(hash: data.pic)
+            }
         }
         
     }

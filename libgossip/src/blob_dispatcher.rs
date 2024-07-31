@@ -14,7 +14,7 @@ use crate::doc::Node;
 
 #[derive(uniffi::Object)]
 pub struct BlobDataDispatcher {
-    bdr_tx: Sender<Arc<dyn BlobDataResponder>>,
+    node: Node,
 }
 
 #[derive(uniffi::Enum)]
@@ -49,39 +49,10 @@ pub trait LoadCollectionDelegate: Send + Sync + 'static {
 
 
 #[uniffi::export(with_foreign)]
+#[async_trait]
 pub trait BlobDataResponder: Send + Sync {
-    fn update(&self, state: BlobDataState);
-    fn hash(&self) -> Option<BlobHash>;
-}
-
-
-async fn worker_loop(node: Node, mut bdr_rx: Receiver<Arc<dyn BlobDataResponder>>) {
-    // this will die when the tx is dropped, nice little actor
-    debug!("BlobDataDispatcher worker loop started");
-
-    while let Some(bdr) = bdr_rx.recv().await {
-        let nclone = node.clone();
-        tokio::spawn(async move {
-            hydrate_responder(nclone, bdr).await
-        });
-    }
-    debug!("BlobDataDispatcher worker ending");
-}
-
-async fn hydrate_responder(node: Node, bdr: Arc<dyn BlobDataResponder>) {
-    if let Some(bh) = bdr.hash() {
-        bdr.update(Loading);
-
-        let res: anyhow::Result<Bytes> = load_bytes(&node, bh.as_bytes().into()).await;
-        match res {
-            Ok(b) => {
-                bdr.update(Loaded(bh, b.into()))
-            }
-            Err(e) => {
-                bdr.update(Failed(e.to_string()))
-            }
-        }
-    }
+    async fn update(&self, state: BlobDataState);
+    async fn hash(&self) -> Option<BlobHash>;
 }
 
 async fn load_bytes(node: &Node, hash: Hash) -> anyhow::Result<Bytes> {
@@ -94,23 +65,20 @@ async fn load_bytes(node: &Node, hash: Hash) -> anyhow::Result<Bytes> {
 
 impl BlobDataDispatcher {
     pub fn new(node: Node) -> BlobDataDispatcher {
-        let (tx, rx) = mpsc::channel(16);
-
-        tokio::spawn(async move {
-            worker_loop(node, rx).await;
-        });
-
         BlobDataDispatcher {
-            bdr_tx: tx
+            node
         }
     }
 }
 
 #[uniffi::export]
 impl BlobDataDispatcher {
-    pub fn hydrate(&self, bdr: Arc<dyn BlobDataResponder>) {
-        if bdr.hash().is_some() {
-            self.bdr_tx.try_send(bdr).expect("Failed to send BDR");
+    pub async fn hydrate(&self, bdr: Arc<dyn BlobDataResponder>) {
+        if let Some(bh) = bdr.hash().await {
+            bdr.update(Loading).await;
+
+            let b: Bytes = load_bytes(&self.node, bh.as_bytes().into()).await.expect("load bytes of existing blob");
+            bdr.update(Loaded(bh, b.into())).await;
         }
     }
 }

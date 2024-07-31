@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use futures_lite::StreamExt;
-use iroh::docs::AuthorId;
+use iroh::docs::{AuthorId, NamespaceId};
 use iroh::docs::store::Query;
 use tokio::sync::broadcast::{Receiver, Sender};
 
@@ -21,6 +21,7 @@ use crate::settings::SettingsEvent::StatusSettingChanged;
 const NODE_SETTINGS_FILE: &str = "node_root_settings_doc.bin";
 
 pub const CURRENT_STATUS_SETTING: &str = "current_status";
+pub const CURRENT_NEARBY_DOC_ID: &str = "current_nearby_doc_id";
 pub const DEFAULT_IDENTITY: &str = "default_identity";
 
 #[derive(Clone, Debug)]
@@ -71,6 +72,15 @@ impl Service {
 
     pub fn subscribe(&self) -> Receiver<SettingsEvent> {
         self.bc.subscribe()
+    }
+
+    pub async fn set_nearby_doc(&self, id: NamespaceId) -> Result<()> {
+        self.root_doc.write_blob(CURRENT_NEARBY_DOC_ID, id).await?;
+        Ok(())
+    }
+
+    pub async fn get_nearby_doc(&self) -> Result<Option<NamespaceId>> {
+        self.root_doc.read_own_blob(CURRENT_NEARBY_DOC_ID).await
     }
 
     pub async fn get_status(&self) -> Result<Status> {

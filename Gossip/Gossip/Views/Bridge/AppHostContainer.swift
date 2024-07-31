@@ -7,22 +7,6 @@
 
 import Foundation
 
-func getNewPostAttachmentsPath() -> URL {
-    var libraryPath: URL = URL.init(filePath: "/")
-    if let libraryDirectoryURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first {
-        let uuid_str = UUID().uuidString
-        libraryPath = libraryDirectoryURL.appendingPathComponent("data/post_attachments/\(uuid_str)")
-        if !FileManager.default.fileExists(atPath: libraryPath.path) {
-            do {
-                try FileManager.default.createDirectory(atPath: libraryPath.path, withIntermediateDirectories: true)
-            } catch {
-                print("failed to create attachment dir")
-            }
-            
-        }
-    }
-    return libraryPath
-}
 
 func getLibraryDataPath() -> String {
     var libraryPath = "";

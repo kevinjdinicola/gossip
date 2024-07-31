@@ -309,15 +309,13 @@ typedef void (*UniffiCallbackInterfaceBleGossipScannerMethod2)(uint64_t, void*_N
 #endif
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_BLOB_DATA_RESPONDER_METHOD0
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_BLOB_DATA_RESPONDER_METHOD0
-typedef void (*UniffiCallbackInterfaceBlobDataResponderMethod0)(uint64_t, RustBuffer, void* _Nonnull, 
-        RustCallStatus *_Nonnull uniffiCallStatus
+typedef void (*UniffiCallbackInterfaceBlobDataResponderMethod0)(uint64_t, RustBuffer, UniffiForeignFutureCompleteVoid _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
     );
 
 #endif
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_BLOB_DATA_RESPONDER_METHOD1
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_BLOB_DATA_RESPONDER_METHOD1
-typedef void (*UniffiCallbackInterfaceBlobDataResponderMethod1)(uint64_t, RustBuffer* _Nonnull, 
-        RustCallStatus *_Nonnull uniffiCallStatus
+typedef void (*UniffiCallbackInterfaceBlobDataResponderMethod1)(uint64_t, UniffiForeignFutureCompleteRustBuffer _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
     );
 
 #endif
@@ -477,6 +475,11 @@ void*_Nonnull uniffi_libgossip_fn_method_apphost_blobs(void*_Nonnull ptr, RustCa
 void*_Nonnull uniffi_libgossip_fn_method_apphost_global(void*_Nonnull ptr, void*_Nonnull view_model, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_PRINT_STATS
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_PRINT_STATS
+void uniffi_libgossip_fn_method_apphost_print_stats(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_SET_RESET_FLAG
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_SET_RESET_FLAG
 void uniffi_libgossip_fn_method_apphost_set_reset_flag(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
@@ -569,7 +572,7 @@ void uniffi_libgossip_fn_free_blobdatadispatcher(void*_Nonnull ptr, RustCallStat
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_BLOBDATADISPATCHER_HYDRATE
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_BLOBDATADISPATCHER_HYDRATE
-void uniffi_libgossip_fn_method_blobdatadispatcher_hydrate(void*_Nonnull ptr, void*_Nonnull bdr, RustCallStatus *_Nonnull out_status
+uint64_t uniffi_libgossip_fn_method_blobdatadispatcher_hydrate(void*_Nonnull ptr, void*_Nonnull bdr
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_BLOBDATARESPONDER
@@ -589,12 +592,12 @@ void uniffi_libgossip_fn_init_callback_vtable_blobdataresponder(UniffiVTableCall
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_BLOBDATARESPONDER_UPDATE
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_BLOBDATARESPONDER_UPDATE
-void uniffi_libgossip_fn_method_blobdataresponder_update(void*_Nonnull ptr, RustBuffer state, RustCallStatus *_Nonnull out_status
+uint64_t uniffi_libgossip_fn_method_blobdataresponder_update(void*_Nonnull ptr, RustBuffer state
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_BLOBDATARESPONDER_HASH
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_BLOBDATARESPONDER_HASH
-RustBuffer uniffi_libgossip_fn_method_blobdataresponder_hash(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+uint64_t uniffi_libgossip_fn_method_blobdataresponder_hash(void*_Nonnull ptr
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_DEVICEAPISERVICEPROVIDER
@@ -630,6 +633,11 @@ void*_Nonnull uniffi_libgossip_fn_clone_global(void*_Nonnull ptr, RustCallStatus
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_FREE_GLOBAL
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_FREE_GLOBAL
 void uniffi_libgossip_fn_free_global(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
+uint64_t uniffi_libgossip_fn_method_global_leave_nearby_group(void*_Nonnull ptr
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_LOAD_NEARBY_PAYLOAD
@@ -1088,6 +1096,12 @@ uint16_t uniffi_libgossip_checksum_method_apphost_global(void
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_PRINT_STATS
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_PRINT_STATS
+uint16_t uniffi_libgossip_checksum_method_apphost_print_stats(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_SET_RESET_FLAG
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_SET_RESET_FLAG
 uint16_t uniffi_libgossip_checksum_method_apphost_set_reset_flag(void
@@ -1175,6 +1189,12 @@ uint16_t uniffi_libgossip_checksum_method_deviceapiserviceprovider_ble_scanner(v
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_DEVICEAPISERVICEPROVIDER_BLE_BROADCASTER
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_DEVICEAPISERVICEPROVIDER_BLE_BROADCASTER
 uint16_t uniffi_libgossip_checksum_method_deviceapiserviceprovider_ble_broadcaster(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
+uint16_t uniffi_libgossip_checksum_method_global_leave_nearby_group(void
     
 );
 #endif

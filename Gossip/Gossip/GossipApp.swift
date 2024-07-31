@@ -17,6 +17,9 @@ struct GossipApp: App {
     
     
     init() {
+        let libraryDirectoryURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first
+        FileManager().changeCurrentDirectoryPath(libraryDirectoryURL!.path)
+        
         RustApp.startRustApp()
         self.globalModel = GlobalVM()
         

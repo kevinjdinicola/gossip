@@ -3,6 +3,7 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
+use futures_lite::StreamExt;
 
 use tokio::runtime::Runtime;
 use tokio::sync::RwLock;
@@ -117,6 +118,26 @@ impl AppHost {
     pub fn blobs(&self) -> Arc<BlobDataDispatcher> {
         let _g = self.rt.enter();
         Arc::new(BlobDataDispatcher::new(self.node()))
+    }
+
+    pub fn print_stats(&self) {
+        let node = self.node();
+        let x = self.rt.block_on(async {
+            // let x = node.stats().await?;
+            // println!("wtf is {:?}", x);
+            let mut cnx = node.connections().await?;
+            while let Some(Ok(c)) = cnx.next().await {
+                println!("nodeinfo {:?}", c);
+                let ci = node.connection_info(c.node_id).await?;
+                if let Some(ci) = ci {
+                    println!("wtf is this {:?}", ci);
+                }
+            }
+            Ok::<(),anyhow::Error>(())
+        });
+        if let Err(e) = x {
+            println!("ERR {}", e);
+        }
     }
 
 

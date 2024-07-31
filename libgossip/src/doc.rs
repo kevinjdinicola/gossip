@@ -105,7 +105,6 @@ impl Doc {
                     if matches!(content_status, ContentStatus::Complete) {
                         Some(ie)
                     } else {
-                        println!("DOC!! insert remote but no have: {}", hash_key);
                         refmap.insert(hash_key, ie);
                         None
                     }

@@ -15,8 +15,40 @@ struct ControlsContainer: View {
                 RustApp.host?.shutdown();
                 exit(0);
             })
+            WideButton(text: "print stats", action: {
+                RustApp.host?.printStats()
+            })
         }.padding(10)
     }
+    
+    func printContentsOfDirectory(atPath path: String, printoffset: Int) {
+        let fileManager = FileManager.default
+        
+        // Check if the path exists and is a directory
+        var isDirectory: ObjCBool = false
+        guard fileManager.fileExists(atPath: path, isDirectory: &isDirectory), isDirectory.boolValue else {
+            print("The path \(path) does not exist or is not a directory.")
+            return
+        }
+        
+        // Recursively print contents
+        do {
+            let contents = try fileManager.contentsOfDirectory(atPath: path)
+            for content in contents {
+                let fullPath: String = (path as NSString).appendingPathComponent(content)
+                
+                print(fullPath.dropFirst(printoffset))
+                
+                var isDirectory: ObjCBool = false
+                if fileManager.fileExists(atPath: fullPath, isDirectory: &isDirectory), isDirectory.boolValue {
+                    printContentsOfDirectory(atPath: fullPath, printoffset: printoffset)
+                }
+            }
+        } catch {
+            print("Error reading contents of directory: \(error)")
+        }
+    }
+
 }
 
 #Preview {

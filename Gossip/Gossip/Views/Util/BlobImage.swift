@@ -21,22 +21,40 @@ struct BlobImage: View {
         uiImage.flatMap { UIImage(data: $0) }
     }
     
+    func imageView() -> Image {
+        if let img = img {
+            Image(uiImage: img)
+                .resizable()
+        } else {
+            Image(systemName: "questionmark.square.dashed")
+        }
+    }
+    
     var body: some View {
         Group {
-            if let img = img {
-                Image(uiImage: img)
-                    .resizable()
-            } else {
-                Image(systemName: "questionmark.square.dashed")
-            }
+            
+            imageView()
+            .onTapGesture(count: 1, perform: {
+                if blobHash != nil {
+                    print("my hash is \(wideidToString(wideId: blobHash!))")
+                } else {
+                    print("no blobhash here...")
+                }
+                
+            })
+                
         }
         .onAppear {
             if (img == nil && blobHash != nil) {
-                picData.loadHash(hash: blobHash)
+                Task {
+                    await picData.loadHash(hash: blobHash)
+                }
             }
         }
         .onChange(of: blobHash) {
-            picData.loadHash(hash: blobHash)
+            Task {
+                await picData.loadHash(hash: blobHash)
+            }
         }
         .onChange(of: picData.data) {
             img = uiImageFromData(uiImage: picData.data)
@@ -48,4 +66,6 @@ struct BlobImage: View {
 #Preview {
     BlobCache.shared.setLocalImage("crow", for: WideId(1))
     return BlobImage(blobHash: WideId(1))
+        .aspectRatio(contentMode: .fit)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
 }

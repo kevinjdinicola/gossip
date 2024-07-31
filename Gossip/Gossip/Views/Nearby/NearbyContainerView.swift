@@ -31,66 +31,84 @@ struct NearbyContainerView: View {
             List {
                 Section {
                     HStack {
-                        Toggle("Available", isOn: $isOn)
+                        Toggle("Broadcast", isOn: $isOn)
                     }
-                    if model.isScanning {
-                        HStack {
-                            Text("Status")
-                            Spacer()
-                            TextField("Whats up?", text:$status)
-                        }
-                    }
+
                 }
                 Section {
                     Text("docId: \(model.debugState.docId)")
                     Text("foundGroup: \(model.debugState.foundGroup)")
                 }
-                if isOn {
-                    if !model.debugState.foundGroup {
-                        HStack {
-                            Text("Scanning")
-                            Spacer()
-                            ProgressView().progressViewStyle(CircularProgressViewStyle())
-                        }
-                        
-                    } else {
-                        Section {
-                            NavigationLink("Chat", destination: {
-                                MessageListView(messages: model.messages, composingMessage: $composingMessage, attachments: $attachments) {
-                                    Task {
-                                        var attachmentDirStr: String? = nil
-                                        if attachments.count > 0 {
-                                            let attachmentDir = getNewPostAttachmentsPath()
-                                            for (i,a) in attachments {
-                                                let path = attachmentDir.appendingPathComponent("\(i).png", conformingTo: .png)
-                                                try a.write(to: path, options: .atomic)
-                                            }
-                                            attachmentDirStr = attachmentDir.path()
-                                        }
-
-                                        await GossipApp.global?.sendMessage(text:composingMessage, payloadDir: attachmentDirStr);
-                                        composingMessage = ""
-                                        attachments = []
-                                    }
-                                }
-                                .navigationTitle("Chat")
-                            })
-
-                        }
-                        Section {
-                            
-                            ForEach(model.identities, id: \.pk) { iden in
-                                NavigationLink(destination: {
-                                    NearbyPersonDetailsView()
-                                }, label: {
-                                    NearbyPersonRow(data: iden)
-                                })
-                                
+                
+                if !model.debugState.foundGroup {
+                    Section {
+                        if model.isScanning {
+                            HStack {
+                                Text("Scanning")
+                                Spacer()
+                                ProgressView().progressViewStyle(CircularProgressViewStyle())
                             }
+                        } else {
+                            Text("Nothing to see here")
                         }
                     }
+                }
+
+                Section {
+                    HStack {
+                        Text("Status")
+                        Spacer()
+                        TextField("Whats up?", text:$status)
+                    }
+                    if model.debugState.foundGroup {
+                        NavigationLink("Chat", destination: {
+                            MessageListView(messages: model.messages, composingMessage: $composingMessage, attachments: $attachments) {
+                                Task {
+                                    var attachmentDirStr: String? = nil
+                                    if attachments.count > 0 {
+                                        let attachmentDir = getUniqueTempDir()
+                                        for (i,a) in attachments {
+                                            let path = attachmentDir.appendingPathComponent("\(i).png", conformingTo: .png)
+                                            try a.write(to: path, options: .atomic)
+                                        }
+                                        attachmentDirStr = attachmentDir.path()
+                                    }
+
+                                    await GossipApp.global?.sendMessage(text:composingMessage, payloadDir: attachmentDirStr);
+                                    composingMessage = ""
+                                    attachments = []
+                                }
+                            }
+                            .navigationTitle("Chat")
+                        })
+                    }
+
 
                 }
+                if model.debugState.foundGroup {
+                    Section {
+                        
+                        ForEach(model.identities, id: \.pk) { iden in
+                            NavigationLink(destination: {
+                                NearbyPersonDetailsView()
+                            }, label: {
+                                NearbyPersonRow(data: iden)
+                            })
+                            
+                        }
+                    }
+                    Section {
+                        Button(action: {
+                            Task {
+                                try await GossipApp.global?.leaveNearbyGroup()
+                            }
+                        }, label: {
+                            Text("Leave Group")
+                                .foregroundStyle(.red)
+                        })
+                    }
+                }
+
 
             }
             .navigationTitle("Nearby")

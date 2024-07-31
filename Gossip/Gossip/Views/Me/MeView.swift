@@ -20,6 +20,9 @@ struct MeView: View {
     @State
     var name: String = ""
     @State
+    var nameDebounceTimer: Timer?
+    
+    @State
     var status: String = ""
     
     var body: some View {
@@ -54,9 +57,13 @@ struct MeView: View {
             status = global.status.text
         }
         .onChange(of: name) {
-            Task {
-                try await GossipApp.global?.setName(name: name)
+            nameDebounceTimer?.invalidate()
+            nameDebounceTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: false) { _ in
+                Task {
+                    try await GossipApp.global?.setName(name: name)
+                }
             }
+
         }
         .onChange(of: status) {
             Task {
@@ -71,7 +78,9 @@ struct MeView: View {
         }
         .onChange(of: global.pic) {
             if let picHash = global.pic {
-                picData.loadHash(hash: picHash)
+                Task {
+                    await picData.loadHash(hash: picHash)
+                }
             } else {
                 picData.state = .empty
             }

@@ -67,6 +67,7 @@ impl Global {
         }
         self.view_model.scanning_updated(self.nearby_service.should_scan().await).await;
 
+
         self.listen().await;
         Ok(())
     }
@@ -76,6 +77,7 @@ impl Global {
         let mut settings_sub = self.settings_service.subscribe();
 
         self.nearby_service.push_debug_state().await;
+        self.nearby_service.broadcast_all_messages().await.expect("broadcast all messages");
 
         let mut listen = true;
         while listen {
@@ -126,6 +128,12 @@ impl Global {
 
 #[uniffi::export(async_runtime = "tokio")]
 impl Global {
+
+    pub async fn leave_nearby_group(&self) -> Result<(), GossipError> {
+        self.nearby_service.update_scanning(false).await?;
+        self.nearby_service.leave_group().await?;
+        Ok(())
+    }
 
     pub async fn set_scanning(&self, should_scan: bool) {
         self.nearby_service.update_scanning(should_scan).await.expect("update scanning")

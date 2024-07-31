@@ -14,7 +14,7 @@ use iroh::blobs::util::SetTagOption;
 use iroh::client::blobs::{BlobStatus, WrapOption};
 use iroh::client::docs::Entry;
 use iroh::client::docs::ShareMode::Write;
-use iroh::docs::{Capability, DocTicket};
+use iroh::docs::{Capability, DocTicket, NamespaceId};
 use iroh::docs::store::{Query, SortBy, SortDirection};
 use iroh::net::NodeAddr;
 use tokio::fs::DirEntry;
@@ -27,7 +27,7 @@ use crate::ble::PeerState::{Scanning, Settled};
 use crate::blob_dispatcher::{CollectionState, LoadCollectionDelegate};
 use crate::data::{BlobHash, PublicKey, UUID};
 use crate::device::DeviceApiServiceProvider;
-use crate::doc::{Doc, key_of, Node};
+use crate::doc::{CoreDoc, Doc, key_of, Node};
 use crate::events::{broadcast, create_broadcast, Subscribable};
 use crate::identity::IdentityService;
 use crate::identity::model::{ID_PIC, IDENTITY, Identity, IdentityServiceEvents};
@@ -110,10 +110,23 @@ impl Service {
         self.bc.subscribe()
     }
 
+
+    async fn get_initial_doc(&self, node: &Node) -> Result<CoreDoc> {
+        let previous_nearby = self.settings_service.get_nearby_doc().await?;
+        let mut doc: Option<CoreDoc> = None;
+        if let Some(previous_nearby) = previous_nearby {
+            doc = node.docs().open(previous_nearby).await?;
+        }
+        if matches!(doc, None) {
+            doc = Some(node.docs().create().await?);
+        }
+        Ok(doc.unwrap())
+    }
+
     async fn initialize(&self) -> Result<()> {
         let mut state = self.state.write().await;
         if let Uninitialized { ref node } = *state {
-            let doc = Doc(node.docs().create().await.unwrap(), node.clone());
+            let doc = Doc(self.get_initial_doc(node).await?, node.clone());
             let ticket = doc.share(Write, Id).await?;
             *state = Ready {
                 doc,
@@ -210,14 +223,46 @@ impl Service {
         return false
     }
 
+    pub async fn leave_group(&self) -> Result<()> {
+        let mut state = self.state.write().await;
+        if let Ready { ref doc, .. } = *state {
+            let node = doc.1.clone();
+            // doc.leave().await?;
+            let old_doc_to_delete = doc.id();
+            // doc.close().await?;
+
+            let doc = Doc(node.docs().create().await?, node.clone());
+            let ticket = doc.share(Write, Id).await?;
+            *state = Ready {
+                doc,
+                doc_share: ticket,
+                identities: vec![],
+                pics: HashMap::new(),
+                statuses: HashMap::new(),
+                ble_peers: HashMap::new(),
+                found_group: false,
+                should_scan: false,
+                should_broadcast: false,
+                messages: vec![],
+            };
+            println!("note to self, delete {}", old_doc_to_delete);
+            // node.docs().drop_doc(old_doc_to_delete).await?;
+        };
+        drop(state);
+        self.load_doc().await?;
+
+        Ok(())
+    }
     pub async fn update_scanning(&self, new_should_scan: bool) -> Result<()> {
         let mut lock = self.state.write().await;
         if let Ready { ref mut should_scan, .. } = *lock {
             if *should_scan != new_should_scan {
                 *should_scan = new_should_scan;
                 if *should_scan {
+                    println!("started ble scanning");
                     self.ble_scanner.start_scanning();
                 } else {
+                    println!("stopped ble scanning");
                     self.ble_scanner.stop_scanning();
                 }
 
@@ -389,6 +434,7 @@ impl Service {
                     let status: Status = doc.read_blob_by_hash(se.content_hash()).await?;
                     statuses.insert(se.author().into(), status);
                 }
+                self.settings_service.set_nearby_doc(doc.id()).await?;
             }
         }
         // we may have loaded a doc that we already have identities and a group on
@@ -451,17 +497,16 @@ impl Service {
             let doc = doc.clone();
             drop(lock);
 
-            let payload_blob = if let Some(payload_dir)  = payload_dir {
+            let payload_blob = if let Some(payload_dir)  = &payload_dir {
                 // let entries = tokio::fs::read_dir(payload_dir).await?;
                 // Iterate over the entries
                 let mut hashes: Vec<(String, Hash)> = vec![];
-                let mut read_stream = tokio::fs::read_dir(&payload_dir).await?;
+                let mut read_stream = tokio::fs::read_dir(payload_dir).await?;
                 while let Some(entry) = read_stream.next_entry().await? {
                     let filename = entry.file_name();
                     let file_name_str = filename.to_string_lossy(); // Get the file name
 
-                    println!("found file {file_name_str}");
-                    let blob = doc.1.blobs().add_from_path(entry.path(),true, SetTagOption::Auto,WrapOption::NoWrap).await?;
+                    let blob = doc.1.blobs().add_from_path(entry.path(),false, SetTagOption::Auto,WrapOption::NoWrap).await?;
                     let x = blob.await?;
                     hashes.push((file_name_str.to_string(), x.hash))
                 }
@@ -484,6 +529,10 @@ impl Service {
                 } else { None }).expect("blob just added not compelte???");
                 let key = message_payload_key(&p);
                 doc.set_hash(me.into(), key, b.into(), size).await?;
+                if let Some(payload_dir) = payload_dir {
+                    println!("deleting {}", payload_dir);
+                    tokio::fs::remove_dir_all(&payload_dir).await?;
+                }
             }
         }
 
@@ -515,6 +564,7 @@ impl Service {
 
     pub async fn get_or_download_collection(&self, hash: BlobHash, delegate: Arc<dyn LoadCollectionDelegate>) -> Result<()> {
         let doc = self.clone_doc().await?;
+        delegate.update(CollectionState::Loading).await;
         if let Ok(items) = doc.get_or_download_collection(hash).await {
             delegate.update(CollectionState::Loaded(items)).await;
         } else {
@@ -522,52 +572,6 @@ impl Service {
         }
         Ok(())
     }
-    //
-    // pub async fn hacky_fix_up(&self, msgs: &mut Vec<DisplayMessage>) -> Result<()> {
-    //     let mut lock = self.state.read().await;
-    //     if let Ready { ref doc,.. } = *lock {
-    //         let doc = doc.clone();
-    //         drop(lock);
-    //         for m in msgs {
-    //             if let Some(ref mut p) = m.payload {
-    //                 let hash = Hash::from_str(p)?;
-    //                 let status = doc.1.blobs().status(hash).await?;
-    //                 println!("omg status {:?}, downloadeding", status);
-    //                 let mut x = doc.get_peer_nodes().await;
-    //                 let z = doc.1.blobs().download_hash_seq(hash, x.remove(0)).await?;
-    //                 let z = z.finish().await?;
-    //                 println!("i downloaded that fucker {:?}",z);
-    //
-    //
-    //                 let mut stream = doc.1.blobs().list_collections()?;
-    //
-    //                 while let Some(Ok(x)) = stream.next().await {
-    //                     println!("omg its {:?}",x);
-    //                 }
-    //
-    //                 println!("BUT I HAVE BLOB {}",hash);
-    //                 match status {
-    //                     BlobStatus::Partial { size } => {
-    //                         println!("Collection blob NOT compeltedly had! {}", size);
-    //                     }
-    //                     BlobStatus::Complete { size } => {
-    //                         println!("Collection blob compelted had! {}", size);
-    //                         let b = doc.1.blobs().get_collection(hash).await?;
-    //                         println!("and its dets {:?}", b);
-    //                         let mut ugh = String::default();
-    //                         for (name,hash) in b.into_iter() {
-    //                             ugh = format!("{ugh}\n{name} -> {hash}");
-    //                         }
-    //                         *p = ugh;
-    //                     }
-    //                 }
-    //
-    //
-    //             }
-    //         }
-    //     }
-    //     Ok(())
-    // }
 
     pub async fn message_updated(&self, message: Post) -> Result<()> {
         let mut lock = self.state.write().await;

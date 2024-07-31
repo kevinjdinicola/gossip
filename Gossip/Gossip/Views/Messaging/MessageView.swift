@@ -14,7 +14,7 @@ struct MessageView: View {
     var payloadDel: CollectionDelegate = CollectionDelegate()
     
     var body: some View {
-        VStack(alignment: .leading, content: {
+        VStack(alignment: message.isSelf ? .trailing : .leading, content: {
             
 //            !message.isSelf ? Text(message.sender + ":")
 //                .bold()
@@ -28,18 +28,23 @@ struct MessageView: View {
                     .cornerRadius(10)
             }
             ForEach(payloadDel.blobs, id: \.name) { item in
-                VStack(alignment: .trailing) {
-
-                    BlobImage(blobHash: item.hash)
-                        .padding(5)
-                        .aspectRatio(contentMode: .fit)
-                        .frame(maxHeight: 200)
-                        .cornerRadius(10)
-                    
-                }
+                BlobImage(blobHash: item.hash)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    .aspectRatio(contentMode: .fit)
+                    .frame(maxHeight: 200)
+                    .padding(5)
             }
             if (message.payload != nil && payloadDel.blobs.isEmpty) {
-                Text("empty blobs! but real payload")
+                HStack {
+                    ProgressView().progressViewStyle(CircularProgressViewStyle())
+                    Text("Downloading message")
+                        .italic()
+                        .font(.footnote)
+                }
+                .padding(10)
+                .background(message.isSelf ? Color.gray : Color.blue)
+                .foregroundColor(Color.white)
+                .cornerRadius(10)
             }
 
             
@@ -58,5 +63,8 @@ struct MessageView: View {
 }
 
 #Preview {
-    MessageView(message: DisplayMessage(id: 1, text: "me", isSelf: true))
+    var cd = CollectionDelegate()
+    BlobCache.shared.setLocalImage("crow", for: WideId(1))
+    cd.blobs = [NamedBlob(name: "crow.png", hash: WideId(1))];
+    return MessageView(message: DisplayMessage(id: 1, text: "me", isSelf: true), payloadDel: cd)
 }

@@ -8,12 +8,8 @@
 import Foundation
 
 @Observable
+@MainActor
 class BlobLoader : ObservableObject, BlobDataResponder {
-    
-    func isCollection() -> Bool {
-        false
-    }
-
     
     var blobHash: WideId?;
     var state: BlobDataState = BlobDataState.empty;
@@ -24,7 +20,9 @@ class BlobLoader : ObservableObject, BlobDataResponder {
     
     init(blobHash: WideId) {
         self.blobHash = blobHash
-        hydrate()
+        Task {
+            await hydrate()
+        }
     }
     
     init(withData: Data) {
@@ -32,26 +30,27 @@ class BlobLoader : ObservableObject, BlobDataResponder {
         self.state = .loaded(self.blobHash!, withData)
     }
     
-    func update(state: BlobDataState) {
+    func update(state: BlobDataState) async {
         if case let .loaded(h, data) = state {
+            print("loaded data for \(wideidToString(wideId: h)) is size \(data.count)")
             BlobCache.shared.setData(data, for: h)
         }
         self.state = state;
     }
     
-    func hash() -> WideId? {
+    func hash() async -> WideId? {
         blobHash
     }
     
-    func loadHash(hash: WideId?) {
+    func loadHash(hash: WideId?) async {
         if let hash = hash {
             self.blobHash = hash
             if let cachedData = BlobCache.shared.getData(for: hash) {
-                print("loaded cached image")
+                print("cached data for \(wideidToString(wideId: hash)) is size \(cachedData.count)")
                 state = .loaded(hash, cachedData)
             } else {
                 print("loading from file")
-                hydrate()
+                await hydrate()
             }
         } else {
             self.blobHash = nil
@@ -59,9 +58,9 @@ class BlobLoader : ObservableObject, BlobDataResponder {
         }
     }
     
-    private func hydrate() {
+    private func hydrate() async {
         if blobHash != nil {
-            RustApp.host?.blobs().hydrate(bdr: self)
+            await RustApp.host?.blobs().hydrate(bdr: self)
         } else {
             state = .empty;
         }
