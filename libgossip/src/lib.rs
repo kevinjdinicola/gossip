@@ -17,6 +17,7 @@ use crate::identity::IdentityService;
 use crate::nearby::NearbyService;
 use crate::settings::{Service as SettingsService, settings_file_path};
 use crate::views::{Global, GlobalViewModel};
+use crate::views::node_stat::{NodeStat, NodeStatViewModel};
 
 mod data;
 mod device;
@@ -120,6 +121,11 @@ impl AppHost {
         Arc::new(BlobDataDispatcher::new(self.node()))
     }
 
+    pub fn node_stats(&self, view_model: Arc<dyn NodeStatViewModel>) -> Arc<NodeStat> {
+        let _g = self.rt.enter();
+        Arc::new(NodeStat::new(view_model, self.node()))
+    }
+
     pub fn print_stats(&self) {
         let node = self.node();
         let x = self.rt.block_on(async {
@@ -169,11 +175,14 @@ mod tests {
     use std::time::Duration;
 
     use async_trait::async_trait;
+    use futures_util::StreamExt;
+    use tokio::runtime::Runtime;
     use tokio::sync::{Mutex};
 
     use crate::{AppConfig, AppHost};
     use crate::data::BlobHash;
-    use crate::nearby::model::{DebugState, NearbyProfile, Status};
+    use crate::doc::Doc;
+    use crate::nearby::model::{DebugState, DisplayMessage, NearbyProfile, Status};
     use crate::views::GlobalViewModel;
 
     const TEST_DIR: &str = "./testtmp";
@@ -231,6 +240,14 @@ mod tests {
         async fn debug_state_updated(&self, status: DebugState) {
 
         }
+
+        async fn all_messages_updated(&self, messages: Vec<DisplayMessage>) {
+
+        }
+
+        async fn received_one_message(&self, message: DisplayMessage) {
+
+        }
     }
 
     #[test]
@@ -254,4 +271,41 @@ mod tests {
 
         assert_eq!(x, "kevin")
     }
+
+    #[test]
+    fn expiry() {
+        let rt = Runtime::new().unwrap();
+        let _c = rt.enter();
+        let r: Result<(), anyhow::Error> = rt.block_on(async move {
+            let node: iroh::node::MemNode = iroh::node::Node::memory().spawn().await.unwrap();
+            let doc = node.docs().create().await?;
+            // let doc = (doc, node.clone());
+            let mut stream = doc.subscribe().await?;
+            tokio::spawn(async move {
+                println!("entering my loop");
+                while let Some(e) = stream.next().await {
+                    println!("got an e!")
+                };
+                println!("DONEEEEEEEEEEE!");
+            });
+            doc.set_bytes(node.authors().default().await.unwrap(), "boo", "boo").await?;
+            tokio::time::sleep(Duration::from_secs(2)).await;
+
+            println!("doing leave");
+            doc.leave().await?;
+            println!("doing close");
+            doc.close().await?;
+            println!("doing drop!");
+            drop(doc);
+            println!("doing shutdown");
+            // node.docs().drop_doc();
+            node.shutdown().await?;
+
+            tokio::time::sleep(Duration::from_secs(2)).await;
+            println!("test done!");
+            Ok(())
+        });
+        r.unwrap();
+    }
+
 }

@@ -504,6 +504,8 @@ public protocol AppHostProtocol : AnyObject {
     
     func global(viewModel: GlobalViewModel)  -> Global
     
+    func nodeStats(viewModel: NodeStatViewModel)  -> NodeStat
+    
     func printStats() 
     
     func setResetFlag() 
@@ -572,6 +574,14 @@ open func global(viewModel: GlobalViewModel) -> Global {
     return try!  FfiConverterTypeGlobal.lift(try! rustCall() {
     uniffi_libgossip_fn_method_apphost_global(self.uniffiClonePointer(),
         FfiConverterTypeGlobalViewModel.lower(viewModel),$0
+    )
+})
+}
+    
+open func nodeStats(viewModel: NodeStatViewModel) -> NodeStat {
+    return try!  FfiConverterTypeNodeStat.lift(try! rustCall() {
+    uniffi_libgossip_fn_method_apphost_node_stats(self.uniffiClonePointer(),
+        FfiConverterTypeNodeStatViewModel.lower(viewModel),$0
     )
 })
 }
@@ -1679,6 +1689,8 @@ public protocol GlobalProtocol : AnyObject {
     
     func setStatus(status: String) async 
     
+    func startSync() async throws 
+    
 }
 
 open class Global:
@@ -1842,6 +1854,23 @@ open func setStatus(status: String)async  {
             liftFunc: { $0 },
             errorHandler: nil
             
+        )
+}
+    
+open func startSync()async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_global_start_sync(
+                    self.uniffiClonePointer()
+                    
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGossipError__as_error.lift
         )
 }
     
@@ -2891,6 +2920,276 @@ public func FfiConverterTypeLoadCollectionDelegate_lower(_ value: LoadCollection
 }
 
 
+
+
+public protocol NodeStatProtocol : AnyObject {
+    
+}
+
+open class NodeStat:
+    NodeStatProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_libgossip_fn_clone_nodestat(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_libgossip_fn_free_nodestat(pointer, $0) }
+    }
+
+    
+
+    
+
+}
+
+public struct FfiConverterTypeNodeStat: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = NodeStat
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> NodeStat {
+        return NodeStat(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: NodeStat) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NodeStat {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: NodeStat, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeNodeStat_lift(_ pointer: UnsafeMutableRawPointer) throws -> NodeStat {
+    return try FfiConverterTypeNodeStat.lift(pointer)
+}
+
+public func FfiConverterTypeNodeStat_lower(_ value: NodeStat) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeNodeStat.lower(value)
+}
+
+
+
+
+public protocol NodeStatViewModel : AnyObject {
+    
+    func updateStats(stats: NodeStatsData) async 
+    
+}
+
+open class NodeStatViewModelImpl:
+    NodeStatViewModel {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_libgossip_fn_clone_nodestatviewmodel(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_libgossip_fn_free_nodestatviewmodel(pointer, $0) }
+    }
+
+    
+
+    
+open func updateStats(stats: NodeStatsData)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nodestatviewmodel_update_stats(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeNodeStatsData.lower(stats)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
+    
+
+}
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceNodeStatViewModel {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    static var vtable: UniffiVTableCallbackInterfaceNodeStatViewModel = UniffiVTableCallbackInterfaceNodeStatViewModel(
+        updateStats: { (
+            uniffiHandle: UInt64,
+            stats: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeNodeStatViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.updateStats(
+                     stats: try FfiConverterTypeNodeStatsData.lift(stats)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            let result = try? FfiConverterTypeNodeStatViewModel.handleMap.remove(handle: uniffiHandle)
+            if result == nil {
+                print("Uniffi callback interface NodeStatViewModel: handle missing in uniffiFree")
+            }
+        }
+    )
+}
+
+private func uniffiCallbackInitNodeStatViewModel() {
+    uniffi_libgossip_fn_init_callback_vtable_nodestatviewmodel(&UniffiCallbackInterfaceNodeStatViewModel.vtable)
+}
+
+public struct FfiConverterTypeNodeStatViewModel: FfiConverter {
+    fileprivate static var handleMap = UniffiHandleMap<NodeStatViewModel>()
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = NodeStatViewModel
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> NodeStatViewModel {
+        return NodeStatViewModelImpl(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: NodeStatViewModel) -> UnsafeMutableRawPointer {
+        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
+            fatalError("Cast to UnsafeMutableRawPointer failed")
+        }
+        return ptr
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NodeStatViewModel {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: NodeStatViewModel, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeNodeStatViewModel_lift(_ pointer: UnsafeMutableRawPointer) throws -> NodeStatViewModel {
+    return try FfiConverterTypeNodeStatViewModel.lift(pointer)
+}
+
+public func FfiConverterTypeNodeStatViewModel_lower(_ value: NodeStatViewModel) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeNodeStatViewModel.lower(value)
+}
+
+
 public struct AppConfig {
     public var dataPath: String
     public var logDirective: String?
@@ -2931,6 +3230,95 @@ public func FfiConverterTypeAppConfig_lift(_ buf: RustBuffer) throws -> AppConfi
 
 public func FfiConverterTypeAppConfig_lower(_ value: AppConfig) -> RustBuffer {
     return FfiConverterTypeAppConfig.lower(value)
+}
+
+
+public struct ConnectionStats {
+    public var nodeId: WideId
+    public var relayInfo: String
+    public var connType: String
+    public var addrs: [String]
+    public var lastReceived: String
+    public var hasSendAddr: Bool
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(nodeId: WideId, relayInfo: String, connType: String, addrs: [String], lastReceived: String, hasSendAddr: Bool) {
+        self.nodeId = nodeId
+        self.relayInfo = relayInfo
+        self.connType = connType
+        self.addrs = addrs
+        self.lastReceived = lastReceived
+        self.hasSendAddr = hasSendAddr
+    }
+}
+
+
+
+extension ConnectionStats: Equatable, Hashable {
+    public static func ==(lhs: ConnectionStats, rhs: ConnectionStats) -> Bool {
+        if lhs.nodeId != rhs.nodeId {
+            return false
+        }
+        if lhs.relayInfo != rhs.relayInfo {
+            return false
+        }
+        if lhs.connType != rhs.connType {
+            return false
+        }
+        if lhs.addrs != rhs.addrs {
+            return false
+        }
+        if lhs.lastReceived != rhs.lastReceived {
+            return false
+        }
+        if lhs.hasSendAddr != rhs.hasSendAddr {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(nodeId)
+        hasher.combine(relayInfo)
+        hasher.combine(connType)
+        hasher.combine(addrs)
+        hasher.combine(lastReceived)
+        hasher.combine(hasSendAddr)
+    }
+}
+
+
+public struct FfiConverterTypeConnectionStats: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConnectionStats {
+        return
+            try ConnectionStats(
+                nodeId: FfiConverterTypeWideId.read(from: &buf), 
+                relayInfo: FfiConverterString.read(from: &buf), 
+                connType: FfiConverterString.read(from: &buf), 
+                addrs: FfiConverterSequenceString.read(from: &buf), 
+                lastReceived: FfiConverterString.read(from: &buf), 
+                hasSendAddr: FfiConverterBool.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: ConnectionStats, into buf: inout [UInt8]) {
+        FfiConverterTypeWideId.write(value.nodeId, into: &buf)
+        FfiConverterString.write(value.relayInfo, into: &buf)
+        FfiConverterString.write(value.connType, into: &buf)
+        FfiConverterSequenceString.write(value.addrs, into: &buf)
+        FfiConverterString.write(value.lastReceived, into: &buf)
+        FfiConverterBool.write(value.hasSendAddr, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeConnectionStats_lift(_ buf: RustBuffer) throws -> ConnectionStats {
+    return try FfiConverterTypeConnectionStats.lift(buf)
+}
+
+public func FfiConverterTypeConnectionStats_lower(_ value: ConnectionStats) -> RustBuffer {
+    return FfiConverterTypeConnectionStats.lower(value)
 }
 
 
@@ -3248,6 +3636,79 @@ public func FfiConverterTypeNearbyProfile_lift(_ buf: RustBuffer) throws -> Near
 
 public func FfiConverterTypeNearbyProfile_lower(_ value: NearbyProfile) -> RustBuffer {
     return FfiConverterTypeNearbyProfile.lower(value)
+}
+
+
+public struct NodeStatsData {
+    public var nodeId: WideId
+    public var relayUrl: String
+    public var listenAddrs: [String]
+    public var connections: [ConnectionStats]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(nodeId: WideId, relayUrl: String, listenAddrs: [String], connections: [ConnectionStats]) {
+        self.nodeId = nodeId
+        self.relayUrl = relayUrl
+        self.listenAddrs = listenAddrs
+        self.connections = connections
+    }
+}
+
+
+
+extension NodeStatsData: Equatable, Hashable {
+    public static func ==(lhs: NodeStatsData, rhs: NodeStatsData) -> Bool {
+        if lhs.nodeId != rhs.nodeId {
+            return false
+        }
+        if lhs.relayUrl != rhs.relayUrl {
+            return false
+        }
+        if lhs.listenAddrs != rhs.listenAddrs {
+            return false
+        }
+        if lhs.connections != rhs.connections {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(nodeId)
+        hasher.combine(relayUrl)
+        hasher.combine(listenAddrs)
+        hasher.combine(connections)
+    }
+}
+
+
+public struct FfiConverterTypeNodeStatsData: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NodeStatsData {
+        return
+            try NodeStatsData(
+                nodeId: FfiConverterTypeWideId.read(from: &buf), 
+                relayUrl: FfiConverterString.read(from: &buf), 
+                listenAddrs: FfiConverterSequenceString.read(from: &buf), 
+                connections: FfiConverterSequenceTypeConnectionStats.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NodeStatsData, into buf: inout [UInt8]) {
+        FfiConverterTypeWideId.write(value.nodeId, into: &buf)
+        FfiConverterString.write(value.relayUrl, into: &buf)
+        FfiConverterSequenceString.write(value.listenAddrs, into: &buf)
+        FfiConverterSequenceTypeConnectionStats.write(value.connections, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeNodeStatsData_lift(_ buf: RustBuffer) throws -> NodeStatsData {
+    return try FfiConverterTypeNodeStatsData.lift(buf)
+}
+
+public func FfiConverterTypeNodeStatsData_lower(_ value: NodeStatsData) -> RustBuffer {
+    return FfiConverterTypeNodeStatsData.lower(value)
 }
 
 
@@ -3622,6 +4083,50 @@ fileprivate struct FfiConverterOptionTypeWideId: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
+    typealias SwiftType = [String]
+
+    public static func write(_ value: [String], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterString.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [String] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [String]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeConnectionStats: FfiConverterRustBuffer {
+    typealias SwiftType = [ConnectionStats]
+
+    public static func write(_ value: [ConnectionStats], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeConnectionStats.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [ConnectionStats] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [ConnectionStats]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeConnectionStats.read(from: &buf))
+        }
+        return seq
+    }
+}
+
 fileprivate struct FfiConverterSequenceTypeDisplayMessage: FfiConverterRustBuffer {
     typealias SwiftType = [DisplayMessage]
 
@@ -3865,6 +4370,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_libgossip_checksum_method_apphost_global() != 14824) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_libgossip_checksum_method_apphost_node_stats() != 31707) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_libgossip_checksum_method_apphost_print_stats() != 39813) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3934,6 +4442,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_libgossip_checksum_method_global_set_status() != 13192) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_libgossip_checksum_method_global_start_sync() != 29723) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_libgossip_checksum_method_globalviewmodel_name_updated() != 25051) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3964,6 +4475,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_libgossip_checksum_method_loadcollectiondelegate_update() != 56170) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_libgossip_checksum_method_nodestatviewmodel_update_stats() != 45677) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_libgossip_checksum_constructor_apphost_new() != 10874) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -3974,6 +4488,7 @@ private var initializationResult: InitializationResult = {
     uniffiCallbackInitDeviceApiServiceProvider()
     uniffiCallbackInitGlobalViewModel()
     uniffiCallbackInitLoadCollectionDelegate()
+    uniffiCallbackInitNodeStatViewModel()
     return InitializationResult.ok
 }()
 

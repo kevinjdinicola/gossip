@@ -20,18 +20,16 @@ use iroh::node::FsNode;
 use serde::{Deserialize, Serialize};
 use tokio::fs::File;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tracing::{debug, info};
-use crate::blob_dispatcher::{LoadCollectionDelegate, NamedBlob};
-use crate::data::BlobHash;
+use tracing::info;
 
+use crate::blob_dispatcher::NamedBlob;
+use crate::data::BlobHash;
 use crate::doc::Origin::{Local, Remote};
 
-
 pub type Node = FsNode;
-pub type CoreDoc = iroh::client::MemDoc;
+pub type CoreDoc = iroh::client::docs::Doc;
 
 #[derive(Clone)]
-
 pub struct Doc(pub CoreDoc, pub Node);
 
 impl Deref for Doc {
@@ -49,6 +47,7 @@ pub struct InsertEntry {
     pub content_status: ContentStatus
 }
 
+
 impl Doc {
     pub fn blobs(&self) -> &blobs::Client {
         self.1.blobs()
@@ -56,6 +55,12 @@ impl Doc {
 
     pub fn authors(&self) -> &authors::Client {
         self.1.authors()
+    }
+
+    pub async fn start_sync_with_known_peers(&self) -> Result<()> {
+        let nodes = self.get_peer_nodes().await;
+        self.start_sync(nodes).await?;
+        Ok(())
     }
 
     pub async fn get_or_download_collection(&self, hash: BlobHash) -> Result<Vec<NamedBlob>> {
@@ -91,7 +96,7 @@ impl Doc {
     }
 
     pub async fn subscribe(&self) -> Result<impl Stream<Item = InsertEntry>> {
-        let mut stream = self.0.subscribe().await?;
+        let stream = self.0.subscribe().await?;
         let mut refmap: HashMap<Hash, InsertEntry> = HashMap::new();
 
         Ok(stream.filter_map(move |e| {

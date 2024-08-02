@@ -6,18 +6,18 @@ use futures_util::StreamExt;
 use iroh::client::blobs::AddOutcome;
 use iroh::client::docs::Entry;
 use iroh::docs::store::Query;
-
 use tokio::sync::broadcast::{Receiver, Sender};
 
 use crate::data::{BlobHash, PublicKey};
 use crate::doc::{Doc, key_of, value_after};
-use crate::events::{broadcast, create_broadcast, Subscribable};
+use crate::events::{broadcast, create_broadcast};
 use crate::identity::model::{ID_PIC_PREFIX, Identity, identity_pic_prefix, identity_prefix, IDENTITY_PREFIX, IdentityServiceEvents};
 use crate::identity::model::IdentityServiceEvents::{DefaultIdentityPicUpdated, DefaultIdentityUpdated};
 
 pub use self::Service as IdentityService;
 
 pub mod model;
+pub mod domain;
 
 
 #[derive(Clone)]
@@ -107,8 +107,6 @@ impl InnerService {
     }
 
     pub async fn get_pic(&self, pk: PublicKey) -> Result<Option<(BlobHash, u64)>> {
-        let key = identity_pic_prefix(pk);
-
         let entry = self.doc.0.get_one(Query::key_exact(identity_pic_prefix(pk))).await?;
         if let Some(e) = entry {
             Ok(Some((e.content_hash().into(), e.content_len())))

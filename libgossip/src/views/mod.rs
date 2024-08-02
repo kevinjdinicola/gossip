@@ -1,19 +1,19 @@
-mod errors;
-
-use std::panic::set_hook;
 use std::sync::Arc;
 
+use anyhow::Result;
 use async_trait::async_trait;
 
+use crate::blob_dispatcher::LoadCollectionDelegate;
+use crate::data::BlobHash;
 use crate::identity::IdentityService;
 use crate::identity::model::{Identity, IdentityServiceEvents};
 use crate::nearby::{NearbyService, NearbyServiceEvents};
-use crate::views::errors::GossipError;
-use crate::nearby::model::{DebugState, DisplayMessage, NearbyProfile, Post, Status};
+use crate::nearby::model::{DebugState, DisplayMessage, NearbyProfile, Status};
 use crate::settings::{SettingsEvent, SettingsService};
-use anyhow::Result;
-use crate::blob_dispatcher::LoadCollectionDelegate;
-use crate::data::BlobHash;
+use crate::views::errors::GossipError;
+
+mod errors;
+pub mod node_stat;
 
 #[uniffi::export(with_foreign)]
 #[async_trait]
@@ -137,6 +137,7 @@ impl Global {
 
     pub async fn set_scanning(&self, should_scan: bool) {
         self.nearby_service.update_scanning(should_scan).await.expect("update scanning")
+
     }
 
     pub async fn set_status(&self, status: String) {
@@ -146,6 +147,11 @@ impl Global {
 
     pub async fn send_message(&self, text: String, payload_dir: Option<String>) {
         self.nearby_service.post_message(text, payload_dir).await.expect("send message");
+    }
+
+    pub async fn start_sync(&self) -> Result<(), GossipError> {
+        self.nearby_service.start_sync().await?;
+        Ok(())
     }
 
     pub async fn load_nearby_payload(&self, hash: BlobHash, collection_delegate: Arc<dyn LoadCollectionDelegate>) {

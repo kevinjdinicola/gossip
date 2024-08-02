@@ -9,16 +9,25 @@ import SwiftUI
 
 struct ControlsContainer: View {
     var body: some View {
-        VStack {
-            WideButton(text: "boom", action: {
-                RustApp.host?.setResetFlag();
-                RustApp.host?.shutdown();
-                exit(0);
-            })
-            WideButton(text: "print stats", action: {
-                RustApp.host?.printStats()
-            })
-        }.padding(10)
+        List {
+            Section {
+                WideButton(text: "Delete All Data", backgroundColor: .red, action: {
+                    RustApp.host?.setResetFlag();
+                    RustApp.host?.shutdown();
+                    exit(0);
+                })
+                WideButton(text: "Sync peers", backgroundColor: .blue, action: {
+                    Task {
+                        try await GossipApp.global?.startSync()
+                    }
+                });
+            }
+            Section {
+                NodeStatsView()
+            }
+
+        }
+
     }
     
     func printContentsOfDirectory(atPath path: String, printoffset: Int) {

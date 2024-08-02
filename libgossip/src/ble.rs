@@ -17,10 +17,11 @@ impl GossipScannerDelegate {
     }
 }
 
+pub type BluetoothPeerEvent = (UUID, PeerData);
 
 pub type AddressData = Vec<u8>;
 pub type DocumentData = Vec<u8>;
-#[derive(Debug, Hash, Eq, PartialEq)]
+#[derive(Debug, Clone, Hash, Eq, PartialEq)]
 pub struct PeerData {
     pub address_data: AddressData,
     pub document_data: DocumentData,
@@ -28,7 +29,7 @@ pub struct PeerData {
 }
 
 #[repr(u8)]
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum PeerState {
     Scanning = 0,
     Settled = 1,

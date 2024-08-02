@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+
 struct NearbyContainerView: View {
     
     @StateObject
@@ -31,35 +32,43 @@ struct NearbyContainerView: View {
             List {
                 Section {
                     HStack {
-                        Toggle("Broadcast", isOn: $isOn)
+                        Toggle("Scanning", isOn: $isOn)
                     }
 
                 }
-                Section {
-                    Text("docId: \(model.debugState.docId)")
-                    Text("foundGroup: \(model.debugState.foundGroup)")
-                }
                 
-                if !model.debugState.foundGroup {
-                    Section {
-                        if model.isScanning {
-                            HStack {
-                                Text("Scanning")
-                                Spacer()
-                                ProgressView().progressViewStyle(CircularProgressViewStyle())
+                Section {
+                    VStack {
+                        if !model.debugState.foundGroup {
+                            if model.isScanning {
+                                HStack {
+                                    Text("Scanning").font(.caption)
+                                        .bold()
+                                }
+                            } else {
+                                Text("Nothing to see here")
+                                    .font(.caption)
                             }
-                        } else {
-                            Text("Nothing to see here")
                         }
                     }
                 }
+                
 
                 Section {
+                    
                     HStack {
                         Text("Status")
-                        Spacer()
-                        TextField("Whats up?", text:$status)
+                            .padding(.trailing, 10)
+                            TextField("Whats up?", text:$status)
+
                     }
+                    NavigationLink(destination: {
+                        NearbyPersonDetailsView()
+                    }, label: {
+                        Text("Bio")
+                            .padding(.trailing, 10)
+                    })
+
                     if model.debugState.foundGroup {
                         NavigationLink("Chat", destination: {
                             MessageListView(messages: model.messages, composingMessage: $composingMessage, attachments: $attachments) {
@@ -108,6 +117,10 @@ struct NearbyContainerView: View {
                         })
                     }
                 }
+                Section {
+                    Text("docId: \(model.debugState.docId)")
+                    Text("foundGroup: \(model.debugState.foundGroup)")
+                }
 
 
             }
@@ -142,16 +155,17 @@ struct NearbyContainerView: View {
 #Preview {
     BlobCache.shared.setLocalImage("crow", for: WideId(1))
     var model = GlobalVM()
-    model.debugState.foundGroup = true
+    model.debugState.foundGroup = false
     model.isScanning = true
     model.messages = [
         DisplayMessage(id: 0, text: "caw", isSelf: true),
         DisplayMessage(id: 1, text: "caw!!!!", isSelf: false),
     ]
+    model.status = Status(text: "Whats up?")
     model.identities = [
         nearbyProfileDummy(),
         nearbyProfileDummy(),
         nearbyProfileDummy()
     ]
-    return NearbyContainerView(model: model)
+    return NearbyContainerView(model: model, status: "Whats up?")
 }

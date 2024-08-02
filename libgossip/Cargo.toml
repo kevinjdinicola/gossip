@@ -8,7 +8,7 @@ crate-type = ["lib", "staticlib"]
 
 [dependencies]
 anyhow = "1.0.86"
-iroh = { version ="0.20.0", features = [] }
+iroh = { version ="0.21.0", features = [] }
 serde = { version = "1.0.204", features = ["serde_derive"] }
 thiserror = "1.0.61"
 tokio = { version = "1.38.0", features = ["rt-multi-thread", "sync"] }

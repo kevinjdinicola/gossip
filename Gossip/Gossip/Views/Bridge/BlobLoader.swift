@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 
 @Observable
 @MainActor
@@ -32,7 +33,7 @@ class BlobLoader : ObservableObject, BlobDataResponder {
     
     func update(state: BlobDataState) async {
         if case let .loaded(h, data) = state {
-            print("loaded data for \(wideidToString(wideId: h)) is size \(data.count)")
+//            print("loaded data for \(wideidToString(wideId: h)) is size \(data.count)")
             BlobCache.shared.setData(data, for: h)
         }
         self.state = state;
@@ -46,10 +47,10 @@ class BlobLoader : ObservableObject, BlobDataResponder {
         if let hash = hash {
             self.blobHash = hash
             if let cachedData = BlobCache.shared.getData(for: hash) {
-                print("cached data for \(wideidToString(wideId: hash)) is size \(cachedData.count)")
+//                print("cached data for \(wideidToString(wideId: hash)) is size \(cachedData.count)")
                 state = .loaded(hash, cachedData)
             } else {
-                print("loading from file")
+//                print("loading from file")
                 await hydrate()
             }
         } else {
@@ -71,6 +72,14 @@ class BlobLoader : ObservableObject, BlobDataResponder {
             return data
         } else {
             return nil
+        }
+    }
+    
+    var dataAsImage: UIImage? {
+        if data != nil {
+            UIImage(data: data!)
+        } else {
+            nil
         }
     }
     

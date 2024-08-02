@@ -2,9 +2,13 @@ use std::{fmt, ptr};
 use std::fmt::{Debug, Display, Formatter};
 
 use iroh::base::base32;
+use iroh::blobs::format::collection::Collection;
 use iroh::blobs::Hash;
+use iroh::blobs::util::SetTagOption;
+use iroh::client::blobs::WrapOption;
 use iroh::docs::{AuthorId, NamespaceId};
 use serde::{Deserialize, Serialize};
+use crate::doc::Doc;
 
 #[repr(C)]
 #[derive(Serialize, Deserialize, PartialEq, Eq, Hash, Clone, Copy)]
@@ -137,7 +141,11 @@ impl From<WideId> for Hash {
     }
 }
 
-
+impl From<iroh::base::key::PublicKey> for WideId {
+    fn from(value: iroh::base::key::PublicKey) -> Self {
+        (*value.as_bytes()).into()
+    }
+}
 
 impl From<NamespaceId> for WideId {
     fn from(value: NamespaceId) -> Self {
@@ -150,7 +158,22 @@ impl From<WideId> for NamespaceId {
     }
 }
 
+pub async fn collection_from_dir(doc: &Doc, payload_dir: &str) -> anyhow::Result<BlobHash> {
+    let mut hashes: Vec<(String, Hash)> = vec![];
+    let mut read_stream = tokio::fs::read_dir(payload_dir).await?;
+    while let Some(entry) = read_stream.next_entry().await? {
+        let filename = entry.file_name();
+        let file_name_str = filename.to_string_lossy(); // Get the file name
 
+        let blob = doc.1.blobs().add_from_path(entry.path(),false, SetTagOption::Auto,WrapOption::NoWrap).await?;
+        let x = blob.await?;
+        hashes.push((file_name_str.to_string(), x.hash))
+    }
+    let collection: Collection = hashes.into_iter().collect();
+    let (payload_blob,_) = doc.1.blobs().create_collection(collection,SetTagOption::Auto, vec![]).await?;
+    tokio::fs::remove_dir_all(&payload_dir).await?;
+    Ok(payload_blob.into())
+}
 
 
 pub type PublicKey = WideId;

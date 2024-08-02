@@ -1,8 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use crate::data::{BlobHash, PublicKey, WideId};
-use crate::nearby::{MESSAGE_PAYLOADS, MESSAGES};
 
+use crate::data::{BlobHash, PublicKey};
+use crate::nearby::MESSAGE_PAYLOADS;
+use crate::nearby::MESSAGES;
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[derive(uniffi::Record)]
@@ -75,5 +76,14 @@ impl Post {
     pub fn payload(mut self, payload: Option<BlobHash>) -> Self {
         self.payload = payload;
         self
+    }
+}
+
+pub fn display_msg_map(idx: usize, me: &PublicKey, msg: Post) -> DisplayMessage {
+    DisplayMessage {
+        id: idx as u32,
+        text: msg.body.unwrap_or_else(||String::default()),
+        is_self: me == &msg.pk,
+        payload: msg.payload
     }
 }

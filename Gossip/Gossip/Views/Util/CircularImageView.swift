@@ -78,7 +78,7 @@ struct CircularImageView: View {
         .overlay(
             frame ? AnyView(Circle().stroke(Color.white, lineWidth: 4)) : AnyView(EmptyView())
         )
-        .shadow(radius: frame ? 10 : 0)
+        .shadow(radius: frame ? 0.7 : 0)
     }
 }
 

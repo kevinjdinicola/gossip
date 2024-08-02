@@ -387,6 +387,12 @@ typedef void (*UniffiCallbackInterfaceLoadCollectionDelegateMethod0)(uint64_t, R
     );
 
 #endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_NODE_STAT_VIEW_MODEL_METHOD0
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_NODE_STAT_VIEW_MODEL_METHOD0
+typedef void (*UniffiCallbackInterfaceNodeStatViewModelMethod0)(uint64_t, RustBuffer, UniffiForeignFutureCompleteVoid _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
+    );
+
+#endif
 #ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_BLE_GOSSIP_BROADCASTER
 #define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_BLE_GOSSIP_BROADCASTER
 typedef struct UniffiVTableCallbackInterfaceBleGossipBroadcaster {
@@ -450,6 +456,14 @@ typedef struct UniffiVTableCallbackInterfaceLoadCollectionDelegate {
 } UniffiVTableCallbackInterfaceLoadCollectionDelegate;
 
 #endif
+#ifndef UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_NODE_STAT_VIEW_MODEL
+#define UNIFFI_FFIDEF_V_TABLE_CALLBACK_INTERFACE_NODE_STAT_VIEW_MODEL
+typedef struct UniffiVTableCallbackInterfaceNodeStatViewModel {
+    UniffiCallbackInterfaceNodeStatViewModelMethod0 _Nonnull updateStats;
+    UniffiCallbackInterfaceFree _Nonnull uniffiFree;
+} UniffiVTableCallbackInterfaceNodeStatViewModel;
+
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_APPHOST
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_APPHOST
 void*_Nonnull uniffi_libgossip_fn_clone_apphost(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
@@ -473,6 +487,11 @@ void*_Nonnull uniffi_libgossip_fn_method_apphost_blobs(void*_Nonnull ptr, RustCa
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_GLOBAL
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_GLOBAL
 void*_Nonnull uniffi_libgossip_fn_method_apphost_global(void*_Nonnull ptr, void*_Nonnull view_model, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_NODE_STATS
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_NODE_STATS
+void*_Nonnull uniffi_libgossip_fn_method_apphost_node_stats(void*_Nonnull ptr, void*_Nonnull view_model, RustCallStatus *_Nonnull out_status
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_PRINT_STATS
@@ -670,6 +689,11 @@ uint64_t uniffi_libgossip_fn_method_global_set_scanning(void*_Nonnull ptr, int8_
 uint64_t uniffi_libgossip_fn_method_global_set_status(void*_Nonnull ptr, RustBuffer status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_START_SYNC
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_START_SYNC
+uint64_t uniffi_libgossip_fn_method_global_start_sync(void*_Nonnull ptr
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_GLOBALVIEWMODEL
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_GLOBALVIEWMODEL
 void*_Nonnull uniffi_libgossip_fn_clone_globalviewmodel(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
@@ -768,6 +792,36 @@ void uniffi_libgossip_fn_init_callback_vtable_loadcollectiondelegate(UniffiVTabl
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_LOADCOLLECTIONDELEGATE_UPDATE
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_LOADCOLLECTIONDELEGATE_UPDATE
 uint64_t uniffi_libgossip_fn_method_loadcollectiondelegate_update(void*_Nonnull ptr, RustBuffer state
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_NODESTAT
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_NODESTAT
+void*_Nonnull uniffi_libgossip_fn_clone_nodestat(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_FREE_NODESTAT
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_FREE_NODESTAT
+void uniffi_libgossip_fn_free_nodestat(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_NODESTATVIEWMODEL
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_NODESTATVIEWMODEL
+void*_Nonnull uniffi_libgossip_fn_clone_nodestatviewmodel(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_FREE_NODESTATVIEWMODEL
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_FREE_NODESTATVIEWMODEL
+void uniffi_libgossip_fn_free_nodestatviewmodel(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_INIT_CALLBACK_VTABLE_NODESTATVIEWMODEL
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_INIT_CALLBACK_VTABLE_NODESTATVIEWMODEL
+void uniffi_libgossip_fn_init_callback_vtable_nodestatviewmodel(UniffiVTableCallbackInterfaceNodeStatViewModel* _Nonnull vtable
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NODESTATVIEWMODEL_UPDATE_STATS
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NODESTATVIEWMODEL_UPDATE_STATS
+uint64_t uniffi_libgossip_fn_method_nodestatviewmodel_update_stats(void*_Nonnull ptr, RustBuffer stats
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_FUNC_CREATE_DUMMY_PROVIDER
@@ -1096,6 +1150,12 @@ uint16_t uniffi_libgossip_checksum_method_apphost_global(void
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_NODE_STATS
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_NODE_STATS
+uint16_t uniffi_libgossip_checksum_method_apphost_node_stats(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_PRINT_STATS
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_PRINT_STATS
 uint16_t uniffi_libgossip_checksum_method_apphost_print_stats(void
@@ -1234,6 +1294,12 @@ uint16_t uniffi_libgossip_checksum_method_global_set_status(void
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_START_SYNC
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_START_SYNC
+uint16_t uniffi_libgossip_checksum_method_global_start_sync(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_NAME_UPDATED
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_NAME_UPDATED
 uint16_t uniffi_libgossip_checksum_method_globalviewmodel_name_updated(void
@@ -1291,6 +1357,12 @@ uint16_t uniffi_libgossip_checksum_method_gossipscannerdelegate_peer_data_discov
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_LOADCOLLECTIONDELEGATE_UPDATE
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_LOADCOLLECTIONDELEGATE_UPDATE
 uint16_t uniffi_libgossip_checksum_method_loadcollectiondelegate_update(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NODESTATVIEWMODEL_UPDATE_STATS
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NODESTATVIEWMODEL_UPDATE_STATS
+uint16_t uniffi_libgossip_checksum_method_nodestatviewmodel_update_stats(void
     
 );
 #endif

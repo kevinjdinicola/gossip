@@ -18,6 +18,8 @@ class BLEGossipScanner: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
 
     
     var recent_peripherals: [CBPeripheral]
+    var perpherals_under_polling: [CBPeripheral] = []
+    var connectTimeoutTimer: Timer?
     
     override init() {
         recent_peripherals = []
@@ -33,17 +35,39 @@ class BLEGossipScanner: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
     
     
     func startScanning() {
-        print("IT DID HAPPEN HERE");
+        print("SWIFT - start bt scanning");
         shouldScan = true
         if centralManager!.state == .poweredOn && !centralManager!.isScanning {
             print("doin a scan1")
             centralManager!.scanForPeripherals(withServices: [CBUUID.GOSSIP_SERVICE])
         }
+        pollRecentPeripherals()
     }
+    
+    func pollRecentPeripherals() {
+        perpherals_under_polling = recent_peripherals
+        connectTimeoutTimer?.invalidate()
+        connectTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 10.0, repeats: false) { _ in
+            // TODO why doesnt this timer fire
+            print("couldn't find these peripherals again! removing \(self.perpherals_under_polling)")
+            for removePeri in self.perpherals_under_polling {
+                self.recent_peripherals.removeAll(where: {p in
+                    p.identifier == removePeri .identifier
+                })
+            }
+            self.perpherals_under_polling = []
+        }
+        for p in recent_peripherals {
+            centralManager?.connect(p)
+        }
+    }
+    
     func stopScanning() {
+        print("SWIFT - STOP bt scanning")
         shouldScan = false
         centralManager?.stopScan()
-        recent_peripherals = []
+        perpherals_under_polling = []
+//        recent_peripherals = []
     }
 
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
@@ -78,6 +102,9 @@ class BLEGossipScanner: NSObject, CBCentralManagerDelegate, CBPeripheralDelegate
         _ central: CBCentralManager,
         didConnect peripheral: CBPeripheral
     ) {
+        perpherals_under_polling.removeAll(where: {cb in
+            cb.identifier == peripheral.identifier
+        })
         peripheral.discoverServices([CBUUID.GOSSIP_SERVICE])
     }
     

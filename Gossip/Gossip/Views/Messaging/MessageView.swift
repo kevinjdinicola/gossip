@@ -15,15 +15,11 @@ struct MessageView: View {
     
     var body: some View {
         VStack(alignment: message.isSelf ? .trailing : .leading, content: {
-            
-//            !message.isSelf ? Text(message.sender + ":")
-//                .bold()
-//                .foregroundColor(Color.gray)
-//            : nil
+
             if message.text.count > 0 {
                 Text(message.text)
                     .padding(10)
-                    .background(message.isSelf ? Color.gray : Color.blue)
+                    .background(message.isSelf ? Color.blue : Color.gray)
                     .foregroundColor(Color.white)
                     .cornerRadius(10)
             }
@@ -42,7 +38,7 @@ struct MessageView: View {
                         .font(.footnote)
                 }
                 .padding(10)
-                .background(message.isSelf ? Color.gray : Color.blue)
+                .background(message.isSelf ? Color.blue : Color.gray)
                 .foregroundColor(Color.white)
                 .cornerRadius(10)
             }
@@ -53,7 +49,7 @@ struct MessageView: View {
             if payloadDel.state == .empty {
                 if let payload = message.payload {
                     Task {
-                        await GossipApp.global?.loadNearbyPayload(hash: payload, collectionDelegate: payloadDel);
+                        await CollectionLoader.shared.load(collectionHash: payload, delegate: payloadDel);
                     }
                 }
             }

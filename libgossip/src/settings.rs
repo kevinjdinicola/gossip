@@ -1,28 +1,23 @@
 use std::ops::Deref;
 use std::path::Path;
-use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::Result;
 use futures_lite::StreamExt;
-use iroh::docs::{AuthorId, NamespaceId};
-use iroh::docs::store::Query;
+use iroh::docs::NamespaceId;
 use tokio::sync::broadcast::{Receiver, Sender};
 
 pub use Service as SettingsService;
 
 use crate::doc::{Doc, key_of};
 use crate::events::{broadcast, create_broadcast};
-use crate::identity::model::{ID_PIC, IDENTITY, Identity};
 use crate::nearby::model::Status;
-use crate::nearby::PUBLIC_STATUS;
 use crate::settings::SettingsEvent::StatusSettingChanged;
 
 const NODE_SETTINGS_FILE: &str = "node_root_settings_doc.bin";
 
 pub const CURRENT_STATUS_SETTING: &str = "current_status";
 pub const CURRENT_NEARBY_DOC_ID: &str = "current_nearby_doc_id";
-pub const DEFAULT_IDENTITY: &str = "default_identity";
 
 #[derive(Clone, Debug)]
 pub enum SettingsEvent {

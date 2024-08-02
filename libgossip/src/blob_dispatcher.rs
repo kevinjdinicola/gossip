@@ -3,14 +3,10 @@ use std::sync::Arc;
 use async_trait::async_trait;
 use bytes::Bytes;
 use iroh::blobs::Hash;
-use tokio::sync::mpsc;
-use tokio::sync::mpsc::{Receiver, Sender};
-use tracing::debug;
 
-use crate::blob_dispatcher::BlobDataState::{Failed, Loaded, Loading};
+use crate::blob_dispatcher::BlobDataState::{Loaded, Loading};
 use crate::data::BlobHash;
 use crate::doc::Node;
-
 
 #[derive(uniffi::Object)]
 pub struct BlobDataDispatcher {

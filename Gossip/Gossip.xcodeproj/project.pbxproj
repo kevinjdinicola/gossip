@@ -29,6 +29,10 @@
 		0AACDFD22C57179900989D1A /* BlobImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD12C57179900989D1A /* BlobImage.swift */; };
 		0AACDFD42C57188E00989D1A /* NearbyPersonRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD32C57188E00989D1A /* NearbyPersonRow.swift */; };
 		0AACDFD62C59BF4F00989D1A /* Dirs.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD52C59BF4F00989D1A /* Dirs.swift */; };
+		0AACDFD82C5A0A6700989D1A /* NodeStatsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD72C5A0A6700989D1A /* NodeStatsView.swift */; };
+		0AACDFDA2C5A0A7600989D1A /* NodeStatsVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD92C5A0A7600989D1A /* NodeStatsVM.swift */; };
+		0AACDFDC2C5AE6FF00989D1A /* CollectionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFDB2C5AE6FF00989D1A /* CollectionLoader.swift */; };
+		0AACDFDE2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFDD2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift */; };
 		0AEDD0FB2C44674700F46E5B /* liblibgossip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A9F22F82C42FBEE00C2FA92 /* liblibgossip.a */; };
 		0AEDD0FD2C4CC77100F46E5B /* AppHostContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */; };
 		0AEDD0FF2C4CC83400F46E5B /* DeviceApiProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD0FE2C4CC83400F46E5B /* DeviceApiProvider.swift */; };
@@ -77,6 +81,10 @@
 		0AACDFD12C57179900989D1A /* BlobImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlobImage.swift; sourceTree = "<group>"; };
 		0AACDFD32C57188E00989D1A /* NearbyPersonRow.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = NearbyPersonRow.swift; sourceTree = "<group>"; };
 		0AACDFD52C59BF4F00989D1A /* Dirs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dirs.swift; sourceTree = "<group>"; };
+		0AACDFD72C5A0A6700989D1A /* NodeStatsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeStatsView.swift; sourceTree = "<group>"; };
+		0AACDFD92C5A0A7600989D1A /* NodeStatsVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeStatsVM.swift; sourceTree = "<group>"; };
+		0AACDFDB2C5AE6FF00989D1A /* CollectionLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionLoader.swift; sourceTree = "<group>"; };
+		0AACDFDD2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPersonDetailsVM.swift; sourceTree = "<group>"; };
 		0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHostContainer.swift; sourceTree = "<group>"; };
 		0AEDD0FE2C4CC83400F46E5B /* DeviceApiProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceApiProvider.swift; sourceTree = "<group>"; };
 		0AEDD1012C4CCBBB00F46E5B /* GlobalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalViewModel.swift; sourceTree = "<group>"; };
@@ -120,6 +128,7 @@
 				0A6722E62C52066400C91A97 /* CircularImageView.swift */,
 				0AACDFD12C57179900989D1A /* BlobImage.swift */,
 				0AACDFD52C59BF4F00989D1A /* Dirs.swift */,
+				0AACDFD72C5A0A6700989D1A /* NodeStatsView.swift */,
 			);
 			path = Util;
 			sourceTree = "<group>";
@@ -143,6 +152,7 @@
 				0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */,
 				0AACDFCD2C54D42F00989D1A /* DataExtension.swift */,
 				0AACDFCF2C5712EE00989D1A /* CollectionDelegate.swift */,
+				0AACDFDB2C5AE6FF00989D1A /* CollectionLoader.swift */,
 			);
 			path = Bridge;
 			sourceTree = "<group>";
@@ -229,6 +239,8 @@
 			isa = PBXGroup;
 			children = (
 				0AEDD1012C4CCBBB00F46E5B /* GlobalViewModel.swift */,
+				0AACDFD92C5A0A7600989D1A /* NodeStatsVM.swift */,
+				0AACDFDD2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -332,6 +344,7 @@
 			files = (
 				0A6722DB2C51A7C000C91A97 /* AppDelegate.swift in Sources */,
 				0AEDD10A2C4CCE2100F46E5B /* CBUUIDExtension.swift in Sources */,
+				0AACDFD82C5A0A6700989D1A /* NodeStatsView.swift in Sources */,
 				0A9F22F02C42F39400C2FA92 /* libgossip.swift in Sources */,
 				0AACDFCB2C53F9C200989D1A /* ControlsContainer.swift in Sources */,
 				0A9F22D02C42EC6D00C2FA92 /* ContentView.swift in Sources */,
@@ -339,8 +352,10 @@
 				0A6722F12C52071600C91A97 /* BlobLoader.swift in Sources */,
 				0AEDD1092C4CCE2100F46E5B /* BLEGossipScanner.swift in Sources */,
 				0A6722FA2C52101E00C91A97 /* MessageListView.swift in Sources */,
+				0AACDFDC2C5AE6FF00989D1A /* CollectionLoader.swift in Sources */,
 				0AEDD1022C4CCBBB00F46E5B /* GlobalViewModel.swift in Sources */,
 				0AACDFD42C57188E00989D1A /* NearbyPersonRow.swift in Sources */,
+				0AACDFDA2C5A0A7600989D1A /* NodeStatsVM.swift in Sources */,
 				0A6722EF2C52071600C91A97 /* WideIdExtension.swift in Sources */,
 				0A6722DE2C51E49A00C91A97 /* NearbyContainerView.swift in Sources */,
 				0AACDFCE2C54D42F00989D1A /* DataExtension.swift in Sources */,
@@ -355,6 +370,7 @@
 				0AEDD10B2C4CCE2100F46E5B /* UUIDExtension.swift in Sources */,
 				0A6E30842C52C1190098D704 /* WideButton.swift in Sources */,
 				0A6722F02C52071600C91A97 /* BlobCache.swift in Sources */,
+				0AACDFDE2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift in Sources */,
 				0AEDD0FF2C4CC83400F46E5B /* DeviceApiProvider.swift in Sources */,
 				0A6722E02C51E4B100C91A97 /* MeView.swift in Sources */,
 			);
