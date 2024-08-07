@@ -33,6 +33,8 @@
 		0AACDFDA2C5A0A7600989D1A /* NodeStatsVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFD92C5A0A7600989D1A /* NodeStatsVM.swift */; };
 		0AACDFDC2C5AE6FF00989D1A /* CollectionLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFDB2C5AE6FF00989D1A /* CollectionLoader.swift */; };
 		0AACDFDE2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AACDFDD2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift */; };
+		0ADEDE022C5DE84A0012DD06 /* PhotosViewModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADEDE012C5DE84A0012DD06 /* PhotosViewModal.swift */; };
+		0ADEDE042C5DE8620012DD06 /* PhotosViewVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ADEDE032C5DE8620012DD06 /* PhotosViewVM.swift */; };
 		0AEDD0FB2C44674700F46E5B /* liblibgossip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A9F22F82C42FBEE00C2FA92 /* liblibgossip.a */; };
 		0AEDD0FD2C4CC77100F46E5B /* AppHostContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */; };
 		0AEDD0FF2C4CC83400F46E5B /* DeviceApiProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0AEDD0FE2C4CC83400F46E5B /* DeviceApiProvider.swift */; };
@@ -85,6 +87,8 @@
 		0AACDFD92C5A0A7600989D1A /* NodeStatsVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NodeStatsVM.swift; sourceTree = "<group>"; };
 		0AACDFDB2C5AE6FF00989D1A /* CollectionLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionLoader.swift; sourceTree = "<group>"; };
 		0AACDFDD2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NearbyPersonDetailsVM.swift; sourceTree = "<group>"; };
+		0ADEDE012C5DE84A0012DD06 /* PhotosViewModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosViewModal.swift; sourceTree = "<group>"; };
+		0ADEDE032C5DE8620012DD06 /* PhotosViewVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotosViewVM.swift; sourceTree = "<group>"; };
 		0AEDD0FC2C4CC77100F46E5B /* AppHostContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppHostContainer.swift; sourceTree = "<group>"; };
 		0AEDD0FE2C4CC83400F46E5B /* DeviceApiProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceApiProvider.swift; sourceTree = "<group>"; };
 		0AEDD1012C4CCBBB00F46E5B /* GlobalViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalViewModel.swift; sourceTree = "<group>"; };
@@ -111,6 +115,7 @@
 		0A6722E42C52064A00C91A97 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				0ADEDDFF2C5DE8330012DD06 /* Modals */,
 				0A6722FD2C52AA3C00C91A97 /* Me */,
 				0A6722F52C520FCF00C91A97 /* Messaging */,
 				0A6722E92C5206E100C91A97 /* Bridge */,
@@ -235,12 +240,21 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		0ADEDDFF2C5DE8330012DD06 /* Modals */ = {
+			isa = PBXGroup;
+			children = (
+				0ADEDE012C5DE84A0012DD06 /* PhotosViewModal.swift */,
+			);
+			path = Modals;
+			sourceTree = "<group>";
+		};
 		0AEDD1002C4CCBAC00F46E5B /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
 				0AEDD1012C4CCBBB00F46E5B /* GlobalViewModel.swift */,
 				0AACDFD92C5A0A7600989D1A /* NodeStatsVM.swift */,
 				0AACDFDD2C5AF36E00989D1A /* NearbyPersonDetailsVM.swift */,
+				0ADEDE032C5DE8620012DD06 /* PhotosViewVM.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -348,6 +362,7 @@
 				0A9F22F02C42F39400C2FA92 /* libgossip.swift in Sources */,
 				0AACDFCB2C53F9C200989D1A /* ControlsContainer.swift in Sources */,
 				0A9F22D02C42EC6D00C2FA92 /* ContentView.swift in Sources */,
+				0ADEDE042C5DE8620012DD06 /* PhotosViewVM.swift in Sources */,
 				0AEDD1082C4CCE2100F46E5B /* BLEGossipBroadcaster.swift in Sources */,
 				0A6722F12C52071600C91A97 /* BlobLoader.swift in Sources */,
 				0AEDD1092C4CCE2100F46E5B /* BLEGossipScanner.swift in Sources */,
@@ -363,6 +378,7 @@
 				0AACDFD62C59BF4F00989D1A /* Dirs.swift in Sources */,
 				0A6722F92C52101E00C91A97 /* MessageView.swift in Sources */,
 				0A9F22CE2C42EC6D00C2FA92 /* GossipApp.swift in Sources */,
+				0ADEDE022C5DE84A0012DD06 /* PhotosViewModal.swift in Sources */,
 				0A6722E72C52066400C91A97 /* CircularImageView.swift in Sources */,
 				0AEDD0FD2C4CC77100F46E5B /* AppHostContainer.swift in Sources */,
 				0AACDFD02C5712EE00989D1A /* CollectionDelegate.swift in Sources */,

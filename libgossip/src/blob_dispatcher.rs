@@ -29,10 +29,16 @@ pub enum CollectionState {
     Failed(String)
 }
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Debug)]
 pub struct NamedBlob {
     pub name: String,
     pub hash: BlobHash
+}
+
+impl From<NamedBlob> for (String, Hash) {
+    fn from(value: NamedBlob) -> Self {
+        (value.name, value.hash.into())
+    }
 }
 
 

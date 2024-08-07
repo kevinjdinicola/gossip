@@ -8,6 +8,7 @@ use async_trait::async_trait;
 use futures_lite::StreamExt;
 use iroh::base::node_addr::AddrInfoOptions::Id;
 use iroh::base::ticket;
+use iroh::blobs::Hash;
 use iroh::client::docs::Entry;
 use iroh::client::docs::ShareMode::Write;
 use iroh::docs::{Capability, DocTicket};
@@ -18,16 +19,16 @@ use tokio::sync::mpsc::channel;
 use tokio::sync::{Notify, RwLock};
 
 use crate::ble::{AddressData, BLEGossipBroadcaster, BLEGossipScanner, BluetoothPeerEvent, DocumentData, GossipScannerDelegate, PeerData};
-use crate::blob_dispatcher::{CollectionState, LoadCollectionDelegate};
-use crate::data::{BlobHash, collection_from_dir, PublicKey, UUID};
+use crate::blob_dispatcher::{CollectionState, LoadCollectionDelegate, NamedBlob};
+use crate::data::{BlobHash, collection_from_dir, PublicKey, replace_or_add_blob, UUID};
 use crate::device::DeviceApiServiceProvider;
 use crate::doc::{CoreDoc, Doc, InsertEntry, key_of, Node};
 use crate::events::{broadcast, create_broadcast, Subscriber, WeakService};
 use crate::identity::domain::{IdentityDomain, IdentityDomainResponder};
 use crate::identity::IdentityService;
 use crate::identity::model::{ID_PIC, IDENTITY, Identity, IdentityServiceEvents};
-use crate::nearby::model::{DebugState, display_msg_map, DisplayMessage, NearbyProfile, Post, Status};
-use crate::nearby::NearbyServiceEvents::{AllMessagesUpdated, DebugStateUpdated, IdentitiesUpdated, ReceivedOneNewMessage, ScanningUpdated};
+use crate::nearby::model::{BioDetails, DebugState, display_msg_map, DisplayMessage, NearbyProfile, Post, Status};
+use crate::nearby::NearbyServiceEvents::{AllMessagesUpdated, BioUpdated, DebugStateUpdated, IdentitiesUpdated, ReceivedOneNewMessage, ScanningUpdated};
 use crate::nearby::peer_calc::{collect_addrs_for_doc, find_best_doc_from_peers};
 use crate::nearby::post::{PostDomain, PostDomainResponder};
 use crate::nearby::State::{Ready, Uninitialized};
@@ -41,6 +42,8 @@ mod post;
 
 pub const PUBLIC_STATUS: &str = "status";
 pub const MESSAGES: &str = "messages";
+
+pub const BIO: &str = "public_bio";
 pub const MESSAGE_PAYLOADS: &str = "message_payloads";
 #[derive(Clone)]
 pub struct Service(Arc<InnerService>);
@@ -56,7 +59,8 @@ pub enum NearbyServiceEvents {
     ScanningUpdated(bool),
     DebugStateUpdated(DebugState),
     AllMessagesUpdated(Vec<DisplayMessage>),
-    ReceivedOneNewMessage(DisplayMessage)
+    ReceivedOneNewMessage(DisplayMessage),
+    BioUpdated(PublicKey),
 }
 
 pub enum State {
@@ -145,7 +149,7 @@ impl IdentityDomainResponder for Service {
             // no point if we're just changing our name
             self.check_if_found_group().await?;
         }
-//        println!("identities did update fired with {:?}", &profiles);
+
         broadcast(&self.bc, IdentitiesUpdated(profiles))?;
         Ok(())
     }
@@ -159,14 +163,18 @@ impl IdentityDomainResponder for Service {
 #[async_trait]
 impl Subscriber<SettingsEvent, InnerService, Service> for Service {
     async fn event(&self, event: SettingsEvent) -> Result<()> {
-        match event {
-            SettingsEvent::StatusSettingChanged(s) => {
-                let lock = self.state.read().await;
-                if let Ready { ref doc, .. } = *lock {
+        let lock = self.state.read().await;
+        if let Ready { ref doc, .. } = *lock {
+            match event {
+                SettingsEvent::StatusSettingChanged(s) => {
                     self.update_my_status_on_doc(&s, doc).await?;
                 }
+                SettingsEvent::OwnPublicBioUpdated(e) => {
+                    self.update_my_bio_on_doc(e, doc).await?;
+                }
             }
-        }
+        };
+
         Ok(())
     }
 }
@@ -257,6 +265,23 @@ impl Service {
         Ok(())
     }
 
+    pub async fn get_profile_by_key(&self, pk: &PublicKey) -> Result<NearbyProfile> {
+        let lock = self.state.read().await;
+        if let Ready { ref identities, ref statuses, ..} = *lock {
+            let pics = identities.pics();
+            let iden = identities.identities_ref().into_iter().find(|i|&i.pk == pk);
+            if let Some(iden) = iden {
+                return Ok(NearbyProfile {
+                    pk: iden.pk,
+                    name: iden.name.clone(),
+                    pic: pics.get(pk).copied(),
+                    status: statuses.get(pk).cloned().unwrap_or(Status { text: String::default() }),
+                })
+            }
+        }
+        Err(anyhow!("profile does not exist here"))
+    }
+
     async fn ready_state_with_doc(&self, doc: Doc) -> State {
         let ticket = doc.share(Write, Id).await.expect("generating doc ticket");
         let messages = PostDomain::new(&doc, self);
@@ -306,10 +331,11 @@ impl Service {
     async fn status_setting_changed(&self, new_status: Status) -> Result<()> {
         let lock = self.state.read().await;
         if let Ready { ref doc, .. } = *lock {
-            doc.write_blob(PUBLIC_STATUS, new_status).await?;
+            doc.write_keyed_blob(PUBLIC_STATUS, new_status).await?;
         }
         Ok(())
     }
+
 
     pub async fn should_scan(&self) -> bool {
         let lock = self.state.read().await;
@@ -425,17 +451,23 @@ impl Service {
 
 
     pub async fn update_my_identity_on_doc(&self, iden: &Identity, doc: &Doc) -> Result<()> {
-        doc.write_blob(IDENTITY, iden).await?;
+        doc.write_keyed_blob(IDENTITY, iden).await?;
         Ok(())
     }
     pub async fn update_my_status_on_doc(&self, status: &Status, doc: &Doc) -> Result<()> {
-        doc.write_blob(PUBLIC_STATUS, status).await?;
+        doc.write_keyed_blob(PUBLIC_STATUS, status).await?;
         Ok(())
     }
 
     pub async fn update_my_pic_on_doc(&self, hash: BlobHash, size: u64, doc: &Doc) -> Result<()> {
         let pk = self.identity_service.get_default_identity_pk().await?;
         doc.set_hash(pk.into(), ID_PIC, hash.into(), size).await?;
+        Ok(())
+    }
+
+    pub async fn update_my_bio_on_doc(&self, entry: Entry, doc: &Doc) -> Result<()> {
+        println!("propagating my bio doc from settings to this nearby doc, i am {}, bio hash is {}", entry.author(), entry.content_hash());
+        doc.set_hash(doc.me().await, BIO, entry.content_hash(), entry.content_len()).await?;
         Ok(())
     }
     pub async fn put_self_on_doc(&self, doc: &Doc) -> Result<()> {
@@ -448,12 +480,96 @@ impl Service {
             if let Some((pic_hash, size)) = self.identity_service.get_pic(iden.pk).await? {
                 self.update_my_pic_on_doc(pic_hash, size, doc).await?;
             }
+
+            if let Some(entry) = self.settings_service.get_bio_entry().await? {
+                self.update_my_bio_on_doc(entry, doc).await?;
+            }
         } else {
             println!("Couldn't put self on doc cuz no identity, but will do it when its there!");
         }
         Ok(())
     }
 
+    pub async fn get_bio(&self, owner: &PublicKey) -> Result<Option<BioDetails>> {
+        let doc = self.clone_doc().await?;
+        let me: PublicKey = doc.me().await.into();
+
+        let entry = doc.0.get_exact(owner.into(), BIO, false).await?;
+        let collection = match entry {
+            None => {
+                if &me == owner {
+                    // allow me to return a blank bio to myself
+                    vec![]
+                } else {
+                    return Ok(None)
+                }
+            }
+            Some(e) => {
+                doc.get_or_download_collection(e.content_hash().into()).await?
+            }
+        };
+
+        let mut bio_text_hash: Option<BlobHash> = None;
+        let pics: Vec<NamedBlob> = collection.into_iter().filter(|b| {
+            if &b.name == "bio_text.txt" {
+
+                bio_text_hash = Some(b.hash);
+                return false;
+            }
+            return true;
+        }).collect();
+        let bio_text: String = match bio_text_hash {
+            None => { String::default() }
+            Some(hash) => { doc.read_blob_by_hash(hash.into()).await? }
+        };
+
+        let editable = *owner == me;
+
+        Ok(Some(BioDetails {
+            text: bio_text,
+            shared: true, //todo fix this
+            editable,
+            pics,
+        }))
+
+    }
+
+    pub async fn set_bio_text(&self, bio_text: String) -> Result<()> {
+        let mut bio_blobs = self.settings_service.get_bio().await?;
+        let doc = self.clone_doc().await?;
+        let new_text_blob = doc.write_blob(bio_text).await?;
+        replace_or_add_blob("bio_text.txt", new_text_blob.hash.into(), &mut bio_blobs).await;
+        self.settings_service.set_bio(bio_blobs).await?;
+        Ok(())
+    }
+
+    pub async fn set_share_bio(&self, share_bio: bool) -> Result<()> {
+        // TODO figure this out
+        Ok(())
+    }
+
+    pub async fn set_gallery_pic(&self, index: usize, pic: Vec<u8>) -> Result<()>{
+        if index > 9 {
+            return Err(anyhow!("only supports up to 9 gallery pics"))
+        };
+        let blob_key = format!("{index}.png");
+        let doc = self.clone_doc().await?;
+        let new_pic_blob = doc.1.blobs().add_bytes(pic).await?;
+
+        let mut bio_blobs = self.settings_service.get_bio().await?;
+        replace_or_add_blob(&blob_key, new_pic_blob.hash.into(), &mut bio_blobs).await;
+        self.settings_service.set_bio(bio_blobs).await?;
+
+        Ok(())
+    }
+
+    pub async fn clear_gallery_pic(&self, index: usize) -> Result<()> {
+        let mut bio_blobs = self.settings_service.get_bio().await?;
+        let blob_key = format!("{index}.png");
+        bio_blobs = bio_blobs.into_iter().filter(|b| b.name == blob_key).collect();
+        self.settings_service.set_bio(bio_blobs).await?;
+        Ok(())
+    }
 
     pub async fn load_doc(&self) -> Result<()> {
         println!("load_doc");
@@ -541,6 +657,10 @@ impl Service {
                     let s: Status = doc.read_blob_by_hash(e.entry.content_hash()).await?;
                     drop(lock); //IMPORTANT TO DO
                     self.status_update(e.entry.author().into(), s).await?;
+                }
+                BIO => {
+                    drop(lock);
+                    broadcast(&self.bc, BioUpdated(e.entry.author().into()))?;
                 }
                 key if identities.handles(key) => {
                     identities.insert_entry(e).await?;

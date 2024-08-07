@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use crate::blob_dispatcher::NamedBlob;
 
 use crate::data::{BlobHash, PublicKey};
 use crate::nearby::MESSAGE_PAYLOADS;
@@ -44,6 +45,15 @@ pub fn message_payload_key(msg: &Post) -> String {
     format!("{MESSAGE_PAYLOADS}/{}",msg.created_at.to_string())
 }
 
+#[derive(uniffi::Record)]
+
+pub struct BioDetails {
+    pub text: String,
+    pub shared: bool,
+    pub editable: bool,
+    pub pics: Vec<NamedBlob>
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 pub struct Post {
     pub pk: PublicKey,
@@ -52,6 +62,7 @@ pub struct Post {
     pub body: Option<String>,
     pub payload: Option<BlobHash>
 }
+
 
 impl Post {
     pub fn new(pk: PublicKey) -> Self {

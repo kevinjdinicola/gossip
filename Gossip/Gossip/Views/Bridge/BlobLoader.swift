@@ -47,10 +47,10 @@ class BlobLoader : ObservableObject, BlobDataResponder {
         if let hash = hash {
             self.blobHash = hash
             if let cachedData = BlobCache.shared.getData(for: hash) {
-//                print("cached data for \(wideidToString(wideId: hash)) is size \(cachedData.count)")
+                print("cached data for \(wideidToString(wideId: hash)) is size \(cachedData.count)")
                 state = .loaded(hash, cachedData)
             } else {
-//                print("loading from file")
+                print("loading from file")
                 await hydrate()
             }
         } else {

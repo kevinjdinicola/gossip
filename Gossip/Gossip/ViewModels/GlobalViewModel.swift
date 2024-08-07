@@ -11,7 +11,7 @@ import Foundation
 @MainActor
 class GlobalVM: GlobalViewModel, ObservableObject {
     
-
+    var ownPk: WideId = WideId(0)
     var name: String = ""
     var status: Status = Status(text: "")
     var pic: WideId?
@@ -53,6 +53,11 @@ class GlobalVM: GlobalViewModel, ObservableObject {
     func receivedOneMessage(message: DisplayMessage) async {
         self.messages.append(message);
     }
+    
+    func ownPublicKeyUpdated(pk: WideId) async {
+        self.ownPk = pk
+    }
+    
     
     
 }

@@ -8,6 +8,7 @@ use iroh::blobs::util::SetTagOption;
 use iroh::client::blobs::WrapOption;
 use iroh::docs::{AuthorId, NamespaceId};
 use serde::{Deserialize, Serialize};
+use crate::blob_dispatcher::NamedBlob;
 use crate::doc::Doc;
 
 #[repr(C)]
@@ -173,6 +174,19 @@ pub async fn collection_from_dir(doc: &Doc, payload_dir: &str) -> anyhow::Result
     let (payload_blob,_) = doc.1.blobs().create_collection(collection,SetTagOption::Auto, vec![]).await?;
     tokio::fs::remove_dir_all(&payload_dir).await?;
     Ok(payload_blob.into())
+}
+
+pub async fn replace_or_add_blob(name: &str, hash: BlobHash, blob_list: &mut Vec<NamedBlob>) {
+    let mut named_blob: Option<NamedBlob> = Some(NamedBlob { name: name.into(), hash });
+    for b in blob_list.iter_mut() {
+        if b.name.as_str() == named_blob.as_ref().unwrap().name {
+            *b = named_blob.take().unwrap();
+            break;
+        }
+    }
+    if let Some(named_blob) = named_blob {
+        blob_list.push(named_blob);
+    }
 }
 
 

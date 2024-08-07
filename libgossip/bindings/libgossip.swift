@@ -504,6 +504,8 @@ public protocol AppHostProtocol : AnyObject {
     
     func global(viewModel: GlobalViewModel)  -> Global
     
+    func nearbyDetails(viewModel: NearbyDetailsViewModel, subjectPk: WideId)  -> NearbyDetailsViewController
+    
     func nodeStats(viewModel: NodeStatViewModel)  -> NodeStat
     
     func printStats() 
@@ -574,6 +576,15 @@ open func global(viewModel: GlobalViewModel) -> Global {
     return try!  FfiConverterTypeGlobal.lift(try! rustCall() {
     uniffi_libgossip_fn_method_apphost_global(self.uniffiClonePointer(),
         FfiConverterTypeGlobalViewModel.lower(viewModel),$0
+    )
+})
+}
+    
+open func nearbyDetails(viewModel: NearbyDetailsViewModel, subjectPk: WideId) -> NearbyDetailsViewController {
+    return try!  FfiConverterTypeNearbyDetailsViewController.lift(try! rustCall() {
+    uniffi_libgossip_fn_method_apphost_nearby_details(self.uniffiClonePointer(),
+        FfiConverterTypeNearbyDetailsViewModel.lower(viewModel),
+        FfiConverterTypeWideId.lower(subjectPk),$0
     )
 })
 }
@@ -1924,6 +1935,8 @@ public func FfiConverterTypeGlobal_lower(_ value: Global) -> UnsafeMutableRawPoi
 
 public protocol GlobalViewModel : AnyObject {
     
+    func ownPublicKeyUpdated(pk: WideId) async 
+    
     func nameUpdated(name: String) async 
     
     func picUpdated(pic: WideId) async 
@@ -1982,6 +1995,24 @@ open class GlobalViewModelImpl:
 
     
 
+    
+open func ownPublicKeyUpdated(pk: WideId)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_globalviewmodel_own_public_key_updated(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeWideId.lower(pk)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
     
 open func nameUpdated(name: String)async  {
     return
@@ -2137,6 +2168,46 @@ fileprivate struct UniffiCallbackInterfaceGlobalViewModel {
     // Create the VTable using a series of closures.
     // Swift automatically converts these into C callback functions.
     static var vtable: UniffiVTableCallbackInterfaceGlobalViewModel = UniffiVTableCallbackInterfaceGlobalViewModel(
+        ownPublicKeyUpdated: { (
+            uniffiHandle: UInt64,
+            pk: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeGlobalViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.ownPublicKeyUpdated(
+                     pk: try FfiConverterTypeWideId.lift(pk)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
         nameUpdated: { (
             uniffiHandle: UInt64,
             name: RustBuffer,
@@ -2922,6 +2993,633 @@ public func FfiConverterTypeLoadCollectionDelegate_lower(_ value: LoadCollection
 
 
 
+public protocol NearbyDetailsViewControllerProtocol : AnyObject {
+    
+    func setBioText(text: String) async throws 
+    
+    func setGalleryPic(index: UInt32, data: Data) async throws 
+    
+    func setShareBio(shouldShare: Bool) async throws 
+    
+}
+
+open class NearbyDetailsViewController:
+    NearbyDetailsViewControllerProtocol {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_libgossip_fn_clone_nearbydetailsviewcontroller(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_libgossip_fn_free_nearbydetailsviewcontroller(pointer, $0) }
+    }
+
+    
+
+    
+open func setBioText(text: String)async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewcontroller_set_bio_text(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(text)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGossipError__as_error.lift
+        )
+}
+    
+open func setGalleryPic(index: UInt32, data: Data)async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewcontroller_set_gallery_pic(
+                    self.uniffiClonePointer(),
+                    FfiConverterUInt32.lower(index),FfiConverterData.lower(data)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGossipError__as_error.lift
+        )
+}
+    
+open func setShareBio(shouldShare: Bool)async throws  {
+    return
+        try  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewcontroller_set_share_bio(
+                    self.uniffiClonePointer(),
+                    FfiConverterBool.lower(shouldShare)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: FfiConverterTypeGossipError__as_error.lift
+        )
+}
+    
+
+}
+
+public struct FfiConverterTypeNearbyDetailsViewController: FfiConverter {
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = NearbyDetailsViewController
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> NearbyDetailsViewController {
+        return NearbyDetailsViewController(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: NearbyDetailsViewController) -> UnsafeMutableRawPointer {
+        return value.uniffiClonePointer()
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NearbyDetailsViewController {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: NearbyDetailsViewController, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeNearbyDetailsViewController_lift(_ pointer: UnsafeMutableRawPointer) throws -> NearbyDetailsViewController {
+    return try FfiConverterTypeNearbyDetailsViewController.lift(pointer)
+}
+
+public func FfiConverterTypeNearbyDetailsViewController_lower(_ value: NearbyDetailsViewController) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeNearbyDetailsViewController.lower(value)
+}
+
+
+
+
+public protocol NearbyDetailsViewModel : AnyObject {
+    
+    func nameUpdated(name: String) async 
+    
+    func statusUpdate(status: Status) async 
+    
+    func picUpdated(pic: WideId?) async 
+    
+    func editableUpdated(editable: Bool) async 
+    
+    func availabilityUpdated(available: Bool) async 
+    
+    func bioDetailsUpdated(details: BioDetails) async 
+    
+}
+
+open class NearbyDetailsViewModelImpl:
+    NearbyDetailsViewModel {
+    fileprivate let pointer: UnsafeMutableRawPointer!
+
+    /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+    public struct NoPointer {
+        public init() {}
+    }
+
+    // TODO: We'd like this to be `private` but for Swifty reasons,
+    // we can't implement `FfiConverter` without making this `required` and we can't
+    // make it `required` without making it `public`.
+    required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
+        self.pointer = pointer
+    }
+
+    /// This constructor can be used to instantiate a fake object.
+    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    ///
+    /// - Warning:
+    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    public init(noPointer: NoPointer) {
+        self.pointer = nil
+    }
+
+    public func uniffiClonePointer() -> UnsafeMutableRawPointer {
+        return try! rustCall { uniffi_libgossip_fn_clone_nearbydetailsviewmodel(self.pointer, $0) }
+    }
+    // No primary constructor declared for this class.
+
+    deinit {
+        guard let pointer = pointer else {
+            return
+        }
+
+        try! rustCall { uniffi_libgossip_fn_free_nearbydetailsviewmodel(pointer, $0) }
+    }
+
+    
+
+    
+open func nameUpdated(name: String)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewmodel_name_updated(
+                    self.uniffiClonePointer(),
+                    FfiConverterString.lower(name)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
+    
+open func statusUpdate(status: Status)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewmodel_status_update(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeStatus.lower(status)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
+    
+open func picUpdated(pic: WideId?)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewmodel_pic_updated(
+                    self.uniffiClonePointer(),
+                    FfiConverterOptionTypeWideId.lower(pic)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
+    
+open func editableUpdated(editable: Bool)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewmodel_editable_updated(
+                    self.uniffiClonePointer(),
+                    FfiConverterBool.lower(editable)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
+    
+open func availabilityUpdated(available: Bool)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewmodel_availability_updated(
+                    self.uniffiClonePointer(),
+                    FfiConverterBool.lower(available)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
+    
+open func bioDetailsUpdated(details: BioDetails)async  {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_libgossip_fn_method_nearbydetailsviewmodel_bio_details_updated(
+                    self.uniffiClonePointer(),
+                    FfiConverterTypeBioDetails.lower(details)
+                )
+            },
+            pollFunc: ffi_libgossip_rust_future_poll_void,
+            completeFunc: ffi_libgossip_rust_future_complete_void,
+            freeFunc: ffi_libgossip_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
+}
+    
+
+}
+
+
+// Put the implementation in a struct so we don't pollute the top-level namespace
+fileprivate struct UniffiCallbackInterfaceNearbyDetailsViewModel {
+
+    // Create the VTable using a series of closures.
+    // Swift automatically converts these into C callback functions.
+    static var vtable: UniffiVTableCallbackInterfaceNearbyDetailsViewModel = UniffiVTableCallbackInterfaceNearbyDetailsViewModel(
+        nameUpdated: { (
+            uniffiHandle: UInt64,
+            name: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeNearbyDetailsViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.nameUpdated(
+                     name: try FfiConverterString.lift(name)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        statusUpdate: { (
+            uniffiHandle: UInt64,
+            status: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeNearbyDetailsViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.statusUpdate(
+                     status: try FfiConverterTypeStatus.lift(status)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        picUpdated: { (
+            uniffiHandle: UInt64,
+            pic: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeNearbyDetailsViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.picUpdated(
+                     pic: try FfiConverterOptionTypeWideId.lift(pic)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        editableUpdated: { (
+            uniffiHandle: UInt64,
+            editable: Int8,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeNearbyDetailsViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.editableUpdated(
+                     editable: try FfiConverterBool.lift(editable)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        availabilityUpdated: { (
+            uniffiHandle: UInt64,
+            available: Int8,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeNearbyDetailsViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.availabilityUpdated(
+                     available: try FfiConverterBool.lift(available)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        bioDetailsUpdated: { (
+            uniffiHandle: UInt64,
+            details: RustBuffer,
+            uniffiFutureCallback: @escaping UniffiForeignFutureCompleteVoid,
+            uniffiCallbackData: UInt64,
+            uniffiOutReturn: UnsafeMutablePointer<UniffiForeignFuture>
+        ) in
+            let makeCall = {
+                () async throws -> () in
+                guard let uniffiObj = try? FfiConverterTypeNearbyDetailsViewModel.handleMap.get(handle: uniffiHandle) else {
+                    throw UniffiInternalError.unexpectedStaleHandle
+                }
+                return await uniffiObj.bioDetailsUpdated(
+                     details: try FfiConverterTypeBioDetails.lift(details)
+                )
+            }
+
+            let uniffiHandleSuccess = { (returnValue: ()) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus()
+                    )
+                )
+            }
+            let uniffiHandleError = { (statusCode, errorBuf) in
+                uniffiFutureCallback(
+                    uniffiCallbackData,
+                    UniffiForeignFutureStructVoid(
+                        callStatus: RustCallStatus(code: statusCode, errorBuf: errorBuf)
+                    )
+                )
+            }
+            let uniffiForeignFuture = uniffiTraitInterfaceCallAsync(
+                makeCall: makeCall,
+                handleSuccess: uniffiHandleSuccess,
+                handleError: uniffiHandleError
+            )
+            uniffiOutReturn.pointee = uniffiForeignFuture
+        },
+        uniffiFree: { (uniffiHandle: UInt64) -> () in
+            let result = try? FfiConverterTypeNearbyDetailsViewModel.handleMap.remove(handle: uniffiHandle)
+            if result == nil {
+                print("Uniffi callback interface NearbyDetailsViewModel: handle missing in uniffiFree")
+            }
+        }
+    )
+}
+
+private func uniffiCallbackInitNearbyDetailsViewModel() {
+    uniffi_libgossip_fn_init_callback_vtable_nearbydetailsviewmodel(&UniffiCallbackInterfaceNearbyDetailsViewModel.vtable)
+}
+
+public struct FfiConverterTypeNearbyDetailsViewModel: FfiConverter {
+    fileprivate static var handleMap = UniffiHandleMap<NearbyDetailsViewModel>()
+
+    typealias FfiType = UnsafeMutableRawPointer
+    typealias SwiftType = NearbyDetailsViewModel
+
+    public static func lift(_ pointer: UnsafeMutableRawPointer) throws -> NearbyDetailsViewModel {
+        return NearbyDetailsViewModelImpl(unsafeFromRawPointer: pointer)
+    }
+
+    public static func lower(_ value: NearbyDetailsViewModel) -> UnsafeMutableRawPointer {
+        guard let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: handleMap.insert(obj: value))) else {
+            fatalError("Cast to UnsafeMutableRawPointer failed")
+        }
+        return ptr
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NearbyDetailsViewModel {
+        let v: UInt64 = try readInt(&buf)
+        // The Rust code won't compile if a pointer won't fit in a UInt64.
+        // We have to go via `UInt` because that's the thing that's the size of a pointer.
+        let ptr = UnsafeMutableRawPointer(bitPattern: UInt(truncatingIfNeeded: v))
+        if (ptr == nil) {
+            throw UniffiInternalError.unexpectedNullPointer
+        }
+        return try lift(ptr!)
+    }
+
+    public static func write(_ value: NearbyDetailsViewModel, into buf: inout [UInt8]) {
+        // This fiddling is because `Int` is the thing that's the same size as a pointer.
+        // The Rust code won't compile if a pointer won't fit in a `UInt64`.
+        writeInt(&buf, UInt64(bitPattern: Int64(Int(bitPattern: lower(value)))))
+    }
+}
+
+
+
+
+public func FfiConverterTypeNearbyDetailsViewModel_lift(_ pointer: UnsafeMutableRawPointer) throws -> NearbyDetailsViewModel {
+    return try FfiConverterTypeNearbyDetailsViewModel.lift(pointer)
+}
+
+public func FfiConverterTypeNearbyDetailsViewModel_lower(_ value: NearbyDetailsViewModel) -> UnsafeMutableRawPointer {
+    return FfiConverterTypeNearbyDetailsViewModel.lower(value)
+}
+
+
+
+
 public protocol NodeStatProtocol : AnyObject {
     
 }
@@ -3230,6 +3928,79 @@ public func FfiConverterTypeAppConfig_lift(_ buf: RustBuffer) throws -> AppConfi
 
 public func FfiConverterTypeAppConfig_lower(_ value: AppConfig) -> RustBuffer {
     return FfiConverterTypeAppConfig.lower(value)
+}
+
+
+public struct BioDetails {
+    public var text: String
+    public var shared: Bool
+    public var editable: Bool
+    public var pics: [NamedBlob]
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(text: String, shared: Bool, editable: Bool, pics: [NamedBlob]) {
+        self.text = text
+        self.shared = shared
+        self.editable = editable
+        self.pics = pics
+    }
+}
+
+
+
+extension BioDetails: Equatable, Hashable {
+    public static func ==(lhs: BioDetails, rhs: BioDetails) -> Bool {
+        if lhs.text != rhs.text {
+            return false
+        }
+        if lhs.shared != rhs.shared {
+            return false
+        }
+        if lhs.editable != rhs.editable {
+            return false
+        }
+        if lhs.pics != rhs.pics {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(text)
+        hasher.combine(shared)
+        hasher.combine(editable)
+        hasher.combine(pics)
+    }
+}
+
+
+public struct FfiConverterTypeBioDetails: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BioDetails {
+        return
+            try BioDetails(
+                text: FfiConverterString.read(from: &buf), 
+                shared: FfiConverterBool.read(from: &buf), 
+                editable: FfiConverterBool.read(from: &buf), 
+                pics: FfiConverterSequenceTypeNamedBlob.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: BioDetails, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.text, into: &buf)
+        FfiConverterBool.write(value.shared, into: &buf)
+        FfiConverterBool.write(value.editable, into: &buf)
+        FfiConverterSequenceTypeNamedBlob.write(value.pics, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeBioDetails_lift(_ buf: RustBuffer) throws -> BioDetails {
+    return try FfiConverterTypeBioDetails.lift(buf)
+}
+
+public func FfiConverterTypeBioDetails_lower(_ value: BioDetails) -> RustBuffer {
+    return FfiConverterTypeBioDetails.lower(value)
 }
 
 
@@ -4370,6 +5141,9 @@ private var initializationResult: InitializationResult = {
     if (uniffi_libgossip_checksum_method_apphost_global() != 14824) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_libgossip_checksum_method_apphost_nearby_details() != 1078) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_libgossip_checksum_method_apphost_node_stats() != 31707) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -4445,34 +5219,64 @@ private var initializationResult: InitializationResult = {
     if (uniffi_libgossip_checksum_method_global_start_sync() != 29723) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_name_updated() != 25051) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_own_public_key_updated() != 52271) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_pic_updated() != 8611) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_name_updated() != 13674) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_scanning_updated() != 59888) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_pic_updated() != 54668) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_nearby_profiles_updated() != 641) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_scanning_updated() != 33459) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_status_updated() != 65486) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_nearby_profiles_updated() != 12720) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_debug_state_updated() != 25085) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_status_updated() != 11050) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_all_messages_updated() != 61396) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_debug_state_updated() != 29919) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_libgossip_checksum_method_globalviewmodel_received_one_message() != 1113) {
+    if (uniffi_libgossip_checksum_method_globalviewmodel_all_messages_updated() != 29228) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_globalviewmodel_received_one_message() != 22149) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_libgossip_checksum_method_gossipscannerdelegate_peer_data_discovered() != 4720) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_libgossip_checksum_method_loadcollectiondelegate_update() != 56170) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewcontroller_set_bio_text() != 26477) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewcontroller_set_gallery_pic() != 23768) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewcontroller_set_share_bio() != 1002) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewmodel_name_updated() != 52829) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewmodel_status_update() != 17258) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewmodel_pic_updated() != 9856) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewmodel_editable_updated() != 33241) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewmodel_availability_updated() != 1208) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_libgossip_checksum_method_nearbydetailsviewmodel_bio_details_updated() != 2344) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_libgossip_checksum_method_nodestatviewmodel_update_stats() != 45677) {
@@ -4488,6 +5292,7 @@ private var initializationResult: InitializationResult = {
     uniffiCallbackInitDeviceApiServiceProvider()
     uniffiCallbackInitGlobalViewModel()
     uniffiCallbackInitLoadCollectionDelegate()
+    uniffiCallbackInitNearbyDetailsViewModel()
     uniffiCallbackInitNodeStatViewModel()
     return InitializationResult.ok
 }()

@@ -75,7 +75,6 @@ impl NodeStat {
         let relay_url = node_status.addr.info.relay_url.map(|f|f.to_string()).unwrap_or(String::from("no relay"));
         let listen_addrs: Vec<String> = node_status.listen_addrs.iter().map(|a| format!("{a}")).collect();
 
-
         let mut stream = self.node.node().connections().await?;
         let mut connections = vec![];
         while let Some(Ok(ni)) = stream.next().await {

@@ -10,6 +10,7 @@ use tokio::sync::RwLock;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
 use crate::blob_dispatcher::BlobDataDispatcher;
+use crate::data::PublicKey;
 
 use crate::device::DeviceApiServiceProvider;
 use crate::doc::{create_or_load_from_fs_reference, Node};
@@ -17,6 +18,7 @@ use crate::identity::IdentityService;
 use crate::nearby::NearbyService;
 use crate::settings::{Service as SettingsService, settings_file_path};
 use crate::views::{Global, GlobalViewModel};
+use crate::views::nearby_details::{NearbyDetailsViewController, NearbyDetailsViewModel};
 use crate::views::node_stat::{NodeStat, NodeStatViewModel};
 
 mod data;
@@ -114,6 +116,11 @@ impl AppHost {
     pub fn global(&self, view_model: Arc<dyn GlobalViewModel>) -> Arc<Global> {
         let _g = self.rt.enter();
         Global::new(view_model, self.identity.clone(), self.nearby.clone(), self.settings.clone())
+    }
+
+    pub fn nearby_details(&self, view_model: Arc<dyn NearbyDetailsViewModel>, subject_pk: PublicKey) -> Arc<NearbyDetailsViewController> {
+        let _g = self.rt.enter();
+        NearbyDetailsViewController::new(subject_pk, view_model, self.identity.clone(), self.nearby.clone(), self.settings.clone())
     }
 
     pub fn blobs(&self) -> Arc<BlobDataDispatcher> {

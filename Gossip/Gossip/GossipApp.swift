@@ -14,6 +14,7 @@ struct GossipApp: App {
     
     var globalModel: GlobalVM
     static var global: GlobalProtocol?
+    var photosViewVodel: PhotosViewVM
     
     
     init() {
@@ -22,6 +23,7 @@ struct GossipApp: App {
         
         RustApp.startRustApp()
         self.globalModel = GlobalVM()
+        self.photosViewVodel = PhotosViewVM()
         
         GossipApp.global = RustApp.host?.global(viewModel: globalModel)
     }
@@ -31,6 +33,7 @@ struct GossipApp: App {
         WindowGroup {
             ContentView()
                 .environment(self.globalModel)
+                .environment(self.photosViewVodel)
         }
     }
 }

@@ -36,20 +36,20 @@ struct MessageListView: View {
     func loadImages(from items: [PhotosPickerItem]) {
         var indexStartOffset = attachments.count
         for (index, item) in items.enumerated() {
-                item.loadTransferable(type: Data.self) { result in
-                    switch result {
-                    case .success(let image):
-                        if let image = image {
-                            DispatchQueue.main.async {
-                                self.attachments.append((hashImageData(image),image))
-                            }
+            item.loadTransferable(type: Data.self) { result in
+                switch result {
+                case .success(let image):
+                    if let image = image {
+                        DispatchQueue.main.async {
+                            self.attachments.append((hashImageData(image),image))
                         }
-                    case .failure(let error):
-                        print("Error loading image: \(error.localizedDescription)")
                     }
+                case .failure(let error):
+                    print("Error loading image: \(error.localizedDescription)")
                 }
             }
         }
+    }
     
     
     var body: some View {
@@ -108,7 +108,7 @@ struct MessageListView: View {
                                         return
                                     }
                                 }
-
+                                
                             }) {
                                 Image(systemName: "x.circle.fill")
                                     .resizable()
@@ -121,7 +121,7 @@ struct MessageListView: View {
                         }
                     }
                 }
-
+                
                 HStack {
                     TextField("Message", text: $composingMessage)
                         .focused($isComposingFieldFocused)
@@ -134,9 +134,9 @@ struct MessageListView: View {
                             .frame(maxHeight: 30)
                             .foregroundColor(.secondary)
                     }
-                    .onChange(of: selectedPhotoPictureItems) {
-                        loadImages(from: selectedPhotoPictureItems)
-                    }
+                                 .onChange(of: selectedPhotoPictureItems) {
+                                     loadImages(from: selectedPhotoPictureItems)
+                                 }
                     
                     Button(action: {
                         sendPressed?()
@@ -169,6 +169,6 @@ struct MessageListView: View {
         DisplayMessage(id: 1, text: "bye", isSelf: false),
     ]
     return MessageListView(messages: msgs, composingMessage: Binding.constant(""), attachments: Binding.constant([])) {
-
+        
     }
 }

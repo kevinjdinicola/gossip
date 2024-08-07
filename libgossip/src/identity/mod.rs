@@ -117,7 +117,7 @@ impl InnerService {
 
     pub async fn save_identity(&self, iden: &Identity) -> Result<AddOutcome> {
         let id = iden.pk;
-        let blob = self.doc.write_blob(identity_prefix(id).as_str(), iden).await?;
+        let blob = self.doc.write_keyed_blob(identity_prefix(id).as_str(), iden).await?;
         Ok(blob)
     }
 

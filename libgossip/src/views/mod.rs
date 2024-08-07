@@ -1,10 +1,11 @@
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{Error, Result};
 use async_trait::async_trait;
 
 use crate::blob_dispatcher::LoadCollectionDelegate;
-use crate::data::BlobHash;
+use crate::data::{BlobHash, WideId};
+use crate::events::{start_with, Starter};
 use crate::identity::IdentityService;
 use crate::identity::model::{Identity, IdentityServiceEvents};
 use crate::nearby::{NearbyService, NearbyServiceEvents};
@@ -14,10 +15,13 @@ use crate::views::errors::GossipError;
 
 mod errors;
 pub mod node_stat;
+pub mod nearby_details;
 
 #[uniffi::export(with_foreign)]
 #[async_trait]
 pub trait GlobalViewModel: Send + Sync + 'static {
+
+    async fn own_public_key_updated(&self, pk: WideId);
     async fn name_updated(&self, name: String);
     async fn pic_updated(&self, pic: BlobHash);
     async fn scanning_updated(&self, scanning: bool);
@@ -30,36 +34,30 @@ pub trait GlobalViewModel: Send + Sync + 'static {
     async fn received_one_message(&self, message: DisplayMessage);
 }
 
-#[derive(uniffi::Object)]
+#[derive(uniffi::Object, Clone)]
 pub struct Global {
     identity_service: IdentityService,
     nearby_service: NearbyService,
     settings_service: SettingsService,
     view_model: Arc<dyn GlobalViewModel>
 }
-
-
-
 impl Global {
     pub fn new(view_model: Arc<dyn GlobalViewModel>, identity_service: IdentityService, nearby_service: NearbyService, settings_service: SettingsService) -> Arc<Self> {
-        let g = Arc::new(Global {
+        Arc::new(start_with(Global {
             identity_service,
             nearby_service,
             view_model,
             settings_service
-        });
-        let o = g.clone();
-        tokio::spawn(async move { o.start().await?; Ok::<(), anyhow::Error>(()) });
-        g
+        }))
     }
 }
 
-impl Global {
-
-    async fn start(&self) -> Result<()> {
-        // prime the initial values
+#[async_trait]
+impl Starter for Global {
+    async fn start(&self) -> std::result::Result<(), Error> {
         self.view_model.status_updated(self.settings_service.get_status().await?).await;
         if let Some(iden) = self.identity_service.get_default_identity().await? {
+            self.view_model.own_public_key_updated(iden.pk).await;
             self.view_model.name_updated(iden.name).await;
             if let Some((pic,_)) = self.identity_service.get_pic(iden.pk).await? {
                 self.view_model.pic_updated(pic).await;
@@ -71,6 +69,10 @@ impl Global {
         self.listen().await;
         Ok(())
     }
+}
+
+impl Global {
+
     async fn listen(&self) {
         let mut iden_sub = self.identity_service.subscribe();
         let mut nearby_sub = self.nearby_service.subscribe();
@@ -87,6 +89,7 @@ impl Global {
                         SettingsEvent::StatusSettingChanged(s) => {
                             self.view_model.status_updated(s).await;
                         }
+                        SettingsEvent::OwnPublicBioUpdated(_) => {}
                     }
                 }
                 Ok(e) = iden_sub.recv() => {
@@ -115,8 +118,9 @@ impl Global {
                         }
                         NearbyServiceEvents::ReceivedOneNewMessage(msg) => {
                             self.view_model.received_one_message(msg).await;
-                        }
-                    }
+                        },
+
+                    NearbyServiceEvents::BioUpdated(_) => {}}
                 },
                 else => {
                     listen = false;

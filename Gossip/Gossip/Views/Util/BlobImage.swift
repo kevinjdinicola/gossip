@@ -7,12 +7,15 @@
 
 import SwiftUI
 
-struct BlobImage: View {
+    struct BlobImage: View {
     
     var blobHash: WideId?
     
     @State
     var img: UIImage?;
+        
+    @EnvironmentObject
+    var photoViewModal: PhotosViewVM
     
     @StateObject
     var picData: BlobLoader = BlobLoader()
@@ -37,6 +40,9 @@ struct BlobImage: View {
             .onTapGesture(count: 1, perform: {
                 if blobHash != nil {
                     print("my hash is \(wideidToString(wideId: blobHash!))")
+                    photoViewModal.index = 0
+                    photoViewModal.images = [img!]
+                    photoViewModal.isShowing = true
                 } else {
                     print("no blobhash here...")
                 }

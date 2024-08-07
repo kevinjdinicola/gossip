@@ -63,7 +63,7 @@ struct NearbyContainerView: View {
 
                     }
                     NavigationLink(destination: {
-                        NearbyPersonDetailsView()
+                        NearbyPersonDetailsView(pk: model.ownPk)
                     }, label: {
                         Text("Bio")
                             .padding(.trailing, 10)
@@ -99,7 +99,7 @@ struct NearbyContainerView: View {
                         
                         ForEach(model.identities, id: \.pk) { iden in
                             NavigationLink(destination: {
-                                NearbyPersonDetailsView()
+                                NearbyPersonDetailsView(pk: iden.pk)
                             }, label: {
                                 NearbyPersonRow(data: iden)
                             })

@@ -53,7 +53,7 @@ where
 
     pub async fn create_post(&self, p: Post) -> Result<()> {
         let key = message_key(&p);
-        self.doc.write_blob(&key,&p).await?;
+        self.doc.write_keyed_blob(&key, &p).await?;
         if let Some(b) = p.payload {
             if let BlobStatus::Complete { size } = self.doc.blobs().status(b.into()).await? {
                 let key = message_payload_key(&p);

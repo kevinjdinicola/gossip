@@ -4,15 +4,16 @@ use std::ops::Deref;
 use std::path::Path;
 use std::sync::Arc;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use futures_lite::stream::{Stream, StreamExt};
 use iroh::blobs::{BlobFormat, Hash};
+use iroh::blobs::format::collection::Collection;
 use iroh::blobs::util::SetTagOption;
 use iroh::client::{authors, blobs};
-use iroh::client::blobs::{AddOutcome, DownloadOptions};
+use iroh::client::blobs::{AddOutcome, BlobStatus, DownloadOptions};
 use iroh::client::blobs::DownloadMode::Queued;
 use iroh::client::docs::{Entry, LiveEvent};
-use iroh::docs::{ContentStatus, NamespaceId};
+use iroh::docs::{AuthorId, ContentStatus, NamespaceId};
 use iroh::docs::store::Query;
 use iroh::net::key::PublicKey;
 use iroh::net::NodeAddr;
@@ -25,6 +26,7 @@ use tracing::info;
 use crate::blob_dispatcher::NamedBlob;
 use crate::data::BlobHash;
 use crate::doc::Origin::{Local, Remote};
+use crate::nearby::BIO;
 
 pub type Node = FsNode;
 pub type CoreDoc = iroh::client::docs::Doc;
@@ -49,6 +51,10 @@ pub struct InsertEntry {
 
 
 impl Doc {
+
+    pub async fn me(&self) -> AuthorId {
+        self.1.authors().default().await.unwrap()
+    }
     pub fn blobs(&self) -> &blobs::Client {
         self.1.blobs()
     }
@@ -63,10 +69,24 @@ impl Doc {
         Ok(())
     }
 
-    pub async fn get_or_download_collection(&self, hash: BlobHash) -> Result<Vec<NamedBlob>> {
-        let collection = if let Ok(collection) = self.blobs().get_collection(hash.into()).await {
-            collection
+    pub async fn set_collection(&self, key: &str, blobs: Vec<NamedBlob>) -> Result<()> {
+        let me = self.1.authors().default().await.unwrap();
+        let blobs: Vec<(String, Hash)> = blobs.into_iter().map(|i| i.into()).collect();
+        let collection: Collection = blobs.into_iter().collect();
+        let (blob,_) = self.1.blobs().create_collection(collection, SetTagOption::Auto, vec![]).await?;
+        if let BlobStatus::Complete { size } = self.1.blobs().status(blob).await? {
+            self.set_hash(me, String::from(key), blob, size).await?;
+            Ok(())
         } else {
+            Err(anyhow!("Cannot set collection if it is not complete"))
+        }
+    }
+    pub async fn get_or_download_collection(&self, hash: BlobHash) -> Result<Vec<NamedBlob>> {
+        println!("accessing collection {}", hash);
+        let mut collection = self.blobs().get_collection(hash.into()).await;
+        let mut did_do_download = false;
+        if let Err(_) = collection {
+            // lets download
             let downloading = self.blobs().download_with_opts(hash.into(), DownloadOptions {
                 format: BlobFormat::HashSeq,
                 nodes: self.get_peer_nodes().await,
@@ -75,8 +95,33 @@ impl Doc {
             }).await?;
             let done = downloading.finish().await?;
             println!("downloaded collection size {}", done.downloaded_size);
-            self.blobs().get_collection(hash.into()).await?
-        };
+            did_do_download = true;
+            collection = self.blobs().get_collection(hash.into()).await
+        }
+        let collection = collection?;
+
+        if !did_do_download {
+            // do i have it all?
+            for i in collection.iter() {
+                match self.1.blobs().status(i.1).await {
+                    Ok(BlobStatus::Complete { .. }) => {}
+                    _ => {
+                        println!("tried to access a collection we thought was downloaded, but it wasn't triggering download");
+                        // goddamn it, do a whole download
+                        let downloading = self.blobs().download_with_opts(hash.into(), DownloadOptions {
+                            format: BlobFormat::HashSeq,
+                            nodes: self.get_peer_nodes().await,
+                            tag: SetTagOption::Auto,
+                            mode: Queued
+                        }).await?;
+                        let done = downloading.finish().await?;
+                        println!("downloaded collection size {}", done.downloaded_size);
+                        break;
+                    }
+                }
+            }
+        }
+
         let blobs: Vec<NamedBlob> = collection.into_iter().map(|(name,hash)|
             NamedBlob { name, hash: hash.into() }
         ).collect();
@@ -177,10 +222,15 @@ impl Doc {
         }
     }
 
-    pub async fn write_blob<T: Serialize>(&self, key: &str, data: T) -> anyhow::Result<AddOutcome> {
+    pub async fn write_blob<T: Serialize>(&self, data: T) -> anyhow::Result<AddOutcome> {
         let mut s = flexbuffers::FlexbufferSerializer::new();
         data.serialize(&mut s).expect("Serialization failure");
         let add = self.1.blobs().add_bytes(s.take_buffer()).await.expect("Persistence failure");
+        Ok(add)
+    }
+
+    pub async fn write_keyed_blob<T: Serialize>(&self, key: &str, data: T) -> anyhow::Result<AddOutcome> {
+        let add = self.write_blob(data).await?;
         let author = self.1.authors().default().await.unwrap();
         self.0.set_hash(author, String::from(key), add.hash, add.size).await.expect("Hash set failure");
         Ok(add)

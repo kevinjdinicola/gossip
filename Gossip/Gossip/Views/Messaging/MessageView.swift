@@ -12,6 +12,7 @@ struct MessageView: View {
     
     @StateObject
     var payloadDel: CollectionDelegate = CollectionDelegate()
+
     
     var body: some View {
         VStack(alignment: message.isSelf ? .trailing : .leading, content: {
@@ -63,4 +64,5 @@ struct MessageView: View {
     BlobCache.shared.setLocalImage("crow", for: WideId(1))
     cd.blobs = [NamedBlob(name: "crow.png", hash: WideId(1))];
     return MessageView(message: DisplayMessage(id: 1, text: "me", isSelf: true), payloadDel: cd)
+        .environment(PhotosViewVM())
 }
