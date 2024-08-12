@@ -6,21 +6,49 @@
 //
 
 import SwiftUI
+import BackgroundTasks
 
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
-
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Perform initial setup tasks here.
-        print("app setup tasks")
-        
+        print("☀️ initial setup tasks")
+
+        BGExperiment.shared.register()
+
         return true
     }
+    
+//    
+//    public static func notify() {
+//        let content = UNMutableNotificationContent()
+//        content.title = "hello world"
+//        content.body = "Sent at \(getCurrentDateTimeString())"
+//        
+//        let uuidString = UUID().uuidString
+//        let request = UNNotificationRequest(identifier: uuidString, content: content, trigger: nil)
+//
+//
+//        // Schedule the request with the system.
+//        print("doin a notify")
+//        Task {
+//            let notificationCenter = UNUserNotificationCenter.current()
+//            do {
+//                try await notificationCenter.add(request)
+//            } catch {
+//                print("DAMN IT")
+//                // Handle errors that may occur during add.
+//            }
+//        }
+//    }
+    
+        
     
     func applicationDidBecomeActive(_ application: UIApplication) {
         print("application did become active")
 //        AppHostWrapper.shared.app?.globalDispatch().emitAction(action: .wakeFromSleep);
+    
+
     }
 
     func applicationWillTerminate(_ application: UIApplication) {

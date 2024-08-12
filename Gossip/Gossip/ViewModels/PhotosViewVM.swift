@@ -15,4 +15,14 @@ class PhotosViewVM: ObservableObject {
     var isShowing: Bool = false
     var index: Int = 0
     var images: [UIImage] = []
+    
+    public func setImagesFromHashes(hashes: [WideId]) async {
+        self.images = hashes.map { hash in
+            if let img = ImageLoader.getData(for: hash) {
+                return img
+            } else {
+                return UIImage()
+            }
+        }
+    }
 }

@@ -387,6 +387,12 @@ typedef void (*UniffiCallbackInterfaceGlobalViewModelMethod8)(uint64_t, RustBuff
     );
 
 #endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_GLOBAL_VIEW_MODEL_METHOD9
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_GLOBAL_VIEW_MODEL_METHOD9
+typedef void (*UniffiCallbackInterfaceGlobalViewModelMethod9)(uint64_t, RustBuffer, UniffiForeignFutureCompleteVoid _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
+    );
+
+#endif
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_LOAD_COLLECTION_DELEGATE_METHOD0
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_LOAD_COLLECTION_DELEGATE_METHOD0
 typedef void (*UniffiCallbackInterfaceLoadCollectionDelegateMethod0)(uint64_t, RustBuffer, UniffiForeignFutureCompleteVoid _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
@@ -426,6 +432,18 @@ typedef void (*UniffiCallbackInterfaceNearbyDetailsViewModelMethod4)(uint64_t, i
 #ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_NEARBY_DETAILS_VIEW_MODEL_METHOD5
 #define UNIFFI_FFIDEF_CALLBACK_INTERFACE_NEARBY_DETAILS_VIEW_MODEL_METHOD5
 typedef void (*UniffiCallbackInterfaceNearbyDetailsViewModelMethod5)(uint64_t, RustBuffer, UniffiForeignFutureCompleteVoid _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_NEARBY_DETAILS_VIEW_MODEL_METHOD6
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_NEARBY_DETAILS_VIEW_MODEL_METHOD6
+typedef void (*UniffiCallbackInterfaceNearbyDetailsViewModelMethod6)(uint64_t, int8_t, UniffiForeignFutureCompleteVoid _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
+    );
+
+#endif
+#ifndef UNIFFI_FFIDEF_CALLBACK_INTERFACE_NEARBY_DETAILS_VIEW_MODEL_METHOD7
+#define UNIFFI_FFIDEF_CALLBACK_INTERFACE_NEARBY_DETAILS_VIEW_MODEL_METHOD7
+typedef void (*UniffiCallbackInterfaceNearbyDetailsViewModelMethod7)(uint64_t, int8_t, UniffiForeignFutureCompleteVoid _Nonnull, uint64_t, UniffiForeignFuture* _Nonnull
     );
 
 #endif
@@ -481,12 +499,13 @@ typedef struct UniffiVTableCallbackInterfaceGlobalViewModel {
     UniffiCallbackInterfaceGlobalViewModelMethod0 _Nonnull ownPublicKeyUpdated;
     UniffiCallbackInterfaceGlobalViewModelMethod1 _Nonnull nameUpdated;
     UniffiCallbackInterfaceGlobalViewModelMethod2 _Nonnull picUpdated;
-    UniffiCallbackInterfaceGlobalViewModelMethod3 _Nonnull scanningUpdated;
+    UniffiCallbackInterfaceGlobalViewModelMethod3 _Nonnull broadcastingUpdated;
     UniffiCallbackInterfaceGlobalViewModelMethod4 _Nonnull nearbyProfilesUpdated;
     UniffiCallbackInterfaceGlobalViewModelMethod5 _Nonnull statusUpdated;
-    UniffiCallbackInterfaceGlobalViewModelMethod6 _Nonnull debugStateUpdated;
-    UniffiCallbackInterfaceGlobalViewModelMethod7 _Nonnull allMessagesUpdated;
-    UniffiCallbackInterfaceGlobalViewModelMethod8 _Nonnull receivedOneMessage;
+    UniffiCallbackInterfaceGlobalViewModelMethod6 _Nonnull docDataUpdated;
+    UniffiCallbackInterfaceGlobalViewModelMethod7 _Nonnull connectionStateUpdated;
+    UniffiCallbackInterfaceGlobalViewModelMethod8 _Nonnull allMessagesUpdated;
+    UniffiCallbackInterfaceGlobalViewModelMethod9 _Nonnull receivedOneMessage;
     UniffiCallbackInterfaceFree _Nonnull uniffiFree;
 } UniffiVTableCallbackInterfaceGlobalViewModel;
 
@@ -508,6 +527,8 @@ typedef struct UniffiVTableCallbackInterfaceNearbyDetailsViewModel {
     UniffiCallbackInterfaceNearbyDetailsViewModelMethod3 _Nonnull editableUpdated;
     UniffiCallbackInterfaceNearbyDetailsViewModelMethod4 _Nonnull availabilityUpdated;
     UniffiCallbackInterfaceNearbyDetailsViewModelMethod5 _Nonnull bioDetailsUpdated;
+    UniffiCallbackInterfaceNearbyDetailsViewModelMethod6 _Nonnull shareBioUpdated;
+    UniffiCallbackInterfaceNearbyDetailsViewModelMethod7 _Nonnull initializedUpdated;
     UniffiCallbackInterfaceFree _Nonnull uniffiFree;
 } UniffiVTableCallbackInterfaceNearbyDetailsViewModel;
 
@@ -545,6 +566,11 @@ void*_Nonnull uniffi_libgossip_fn_method_apphost_blobs(void*_Nonnull ptr, RustCa
 void*_Nonnull uniffi_libgossip_fn_method_apphost_global(void*_Nonnull ptr, void*_Nonnull view_model, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_LOAD_BLOB
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_LOAD_BLOB
+uint64_t uniffi_libgossip_fn_method_apphost_load_blob(void*_Nonnull ptr, RustBuffer hash
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_NEARBY_DETAILS
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_NEARBY_DETAILS
 void*_Nonnull uniffi_libgossip_fn_method_apphost_nearby_details(void*_Nonnull ptr, void*_Nonnull view_model, RustBuffer subject_pk, RustCallStatus *_Nonnull out_status
@@ -558,6 +584,11 @@ void*_Nonnull uniffi_libgossip_fn_method_apphost_node_stats(void*_Nonnull ptr, v
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_PRINT_STATS
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_PRINT_STATS
 void uniffi_libgossip_fn_method_apphost_print_stats(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_SAVE_BLOB
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_SAVE_BLOB
+uint64_t uniffi_libgossip_fn_method_apphost_save_blob(void*_Nonnull ptr, RustBuffer data
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_APPHOST_SET_RESET_FLAG
@@ -715,6 +746,11 @@ void*_Nonnull uniffi_libgossip_fn_clone_global(void*_Nonnull ptr, RustCallStatus
 void uniffi_libgossip_fn_free_global(void*_Nonnull ptr, RustCallStatus *_Nonnull out_status
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_CANCEL_CONNECTION_ATTEMPT
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_CANCEL_CONNECTION_ATTEMPT
+uint64_t uniffi_libgossip_fn_method_global_cancel_connection_attempt(void*_Nonnull ptr
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
 uint64_t uniffi_libgossip_fn_method_global_leave_nearby_group(void*_Nonnull ptr
@@ -730,6 +766,11 @@ uint64_t uniffi_libgossip_fn_method_global_load_nearby_payload(void*_Nonnull ptr
 uint64_t uniffi_libgossip_fn_method_global_send_message(void*_Nonnull ptr, RustBuffer text, RustBuffer payload_dir
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_BROADCASTING
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_BROADCASTING
+uint64_t uniffi_libgossip_fn_method_global_set_broadcasting(void*_Nonnull ptr, int8_t should_broadcast
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_NAME
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_NAME
 uint64_t uniffi_libgossip_fn_method_global_set_name(void*_Nonnull ptr, RustBuffer name
@@ -740,14 +781,14 @@ uint64_t uniffi_libgossip_fn_method_global_set_name(void*_Nonnull ptr, RustBuffe
 uint64_t uniffi_libgossip_fn_method_global_set_pic(void*_Nonnull ptr, RustBuffer pic_data
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_SCANNING
-#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_SCANNING
-uint64_t uniffi_libgossip_fn_method_global_set_scanning(void*_Nonnull ptr, int8_t should_scan
-);
-#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_STATUS
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_SET_STATUS
 uint64_t uniffi_libgossip_fn_method_global_set_status(void*_Nonnull ptr, RustBuffer status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_START_SCANNING
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_START_SCANNING
+uint64_t uniffi_libgossip_fn_method_global_start_scanning(void*_Nonnull ptr
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBAL_START_SYNC
@@ -785,9 +826,9 @@ uint64_t uniffi_libgossip_fn_method_globalviewmodel_name_updated(void*_Nonnull p
 uint64_t uniffi_libgossip_fn_method_globalviewmodel_pic_updated(void*_Nonnull ptr, RustBuffer pic
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_SCANNING_UPDATED
-#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_SCANNING_UPDATED
-uint64_t uniffi_libgossip_fn_method_globalviewmodel_scanning_updated(void*_Nonnull ptr, int8_t scanning
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_BROADCASTING_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_BROADCASTING_UPDATED
+uint64_t uniffi_libgossip_fn_method_globalviewmodel_broadcasting_updated(void*_Nonnull ptr, int8_t broadcasting
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_NEARBY_PROFILES_UPDATED
@@ -800,9 +841,14 @@ uint64_t uniffi_libgossip_fn_method_globalviewmodel_nearby_profiles_updated(void
 uint64_t uniffi_libgossip_fn_method_globalviewmodel_status_updated(void*_Nonnull ptr, RustBuffer status
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_DEBUG_STATE_UPDATED
-#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_DEBUG_STATE_UPDATED
-uint64_t uniffi_libgossip_fn_method_globalviewmodel_debug_state_updated(void*_Nonnull ptr, RustBuffer status
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_DOC_DATA_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_DOC_DATA_UPDATED
+uint64_t uniffi_libgossip_fn_method_globalviewmodel_doc_data_updated(void*_Nonnull ptr, RustBuffer status
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_CONNECTION_STATE_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_CONNECTION_STATE_UPDATED
+uint64_t uniffi_libgossip_fn_method_globalviewmodel_connection_state_updated(void*_Nonnull ptr, RustBuffer state
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_GLOBALVIEWMODEL_ALL_MESSAGES_UPDATED
@@ -877,7 +923,7 @@ uint64_t uniffi_libgossip_fn_method_nearbydetailsviewcontroller_set_bio_text(voi
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWCONTROLLER_SET_GALLERY_PIC
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWCONTROLLER_SET_GALLERY_PIC
-uint64_t uniffi_libgossip_fn_method_nearbydetailsviewcontroller_set_gallery_pic(void*_Nonnull ptr, uint32_t index, RustBuffer data
+uint64_t uniffi_libgossip_fn_method_nearbydetailsviewcontroller_set_gallery_pic(void*_Nonnull ptr, RustBuffer pics
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWCONTROLLER_SET_SHARE_BIO
@@ -928,6 +974,16 @@ uint64_t uniffi_libgossip_fn_method_nearbydetailsviewmodel_availability_updated(
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWMODEL_BIO_DETAILS_UPDATED
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWMODEL_BIO_DETAILS_UPDATED
 uint64_t uniffi_libgossip_fn_method_nearbydetailsviewmodel_bio_details_updated(void*_Nonnull ptr, RustBuffer details
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWMODEL_SHARE_BIO_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWMODEL_SHARE_BIO_UPDATED
+uint64_t uniffi_libgossip_fn_method_nearbydetailsviewmodel_share_bio_updated(void*_Nonnull ptr, int8_t share_bio
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWMODEL_INITIALIZED_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_METHOD_NEARBYDETAILSVIEWMODEL_INITIALIZED_UPDATED
+uint64_t uniffi_libgossip_fn_method_nearbydetailsviewmodel_initialized_updated(void*_Nonnull ptr, int8_t initialized
 );
 #endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_FN_CLONE_NODESTAT
@@ -1286,6 +1342,12 @@ uint16_t uniffi_libgossip_checksum_method_apphost_global(void
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_LOAD_BLOB
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_LOAD_BLOB
+uint16_t uniffi_libgossip_checksum_method_apphost_load_blob(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_NEARBY_DETAILS
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_NEARBY_DETAILS
 uint16_t uniffi_libgossip_checksum_method_apphost_nearby_details(void
@@ -1301,6 +1363,12 @@ uint16_t uniffi_libgossip_checksum_method_apphost_node_stats(void
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_PRINT_STATS
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_PRINT_STATS
 uint16_t uniffi_libgossip_checksum_method_apphost_print_stats(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_SAVE_BLOB
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_APPHOST_SAVE_BLOB
+uint16_t uniffi_libgossip_checksum_method_apphost_save_blob(void
     
 );
 #endif
@@ -1394,6 +1462,12 @@ uint16_t uniffi_libgossip_checksum_method_deviceapiserviceprovider_ble_broadcast
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_CANCEL_CONNECTION_ATTEMPT
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_CANCEL_CONNECTION_ATTEMPT
+uint16_t uniffi_libgossip_checksum_method_global_cancel_connection_attempt(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_LEAVE_NEARBY_GROUP
 uint16_t uniffi_libgossip_checksum_method_global_leave_nearby_group(void
@@ -1412,6 +1486,12 @@ uint16_t uniffi_libgossip_checksum_method_global_send_message(void
     
 );
 #endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_BROADCASTING
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_BROADCASTING
+uint16_t uniffi_libgossip_checksum_method_global_set_broadcasting(void
+    
+);
+#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_NAME
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_NAME
 uint16_t uniffi_libgossip_checksum_method_global_set_name(void
@@ -1424,15 +1504,15 @@ uint16_t uniffi_libgossip_checksum_method_global_set_pic(void
     
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_SCANNING
-#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_SCANNING
-uint16_t uniffi_libgossip_checksum_method_global_set_scanning(void
-    
-);
-#endif
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_STATUS
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_SET_STATUS
 uint16_t uniffi_libgossip_checksum_method_global_set_status(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_START_SCANNING
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBAL_START_SCANNING
+uint16_t uniffi_libgossip_checksum_method_global_start_scanning(void
     
 );
 #endif
@@ -1460,9 +1540,9 @@ uint16_t uniffi_libgossip_checksum_method_globalviewmodel_pic_updated(void
     
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_SCANNING_UPDATED
-#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_SCANNING_UPDATED
-uint16_t uniffi_libgossip_checksum_method_globalviewmodel_scanning_updated(void
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_BROADCASTING_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_BROADCASTING_UPDATED
+uint16_t uniffi_libgossip_checksum_method_globalviewmodel_broadcasting_updated(void
     
 );
 #endif
@@ -1478,9 +1558,15 @@ uint16_t uniffi_libgossip_checksum_method_globalviewmodel_status_updated(void
     
 );
 #endif
-#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_DEBUG_STATE_UPDATED
-#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_DEBUG_STATE_UPDATED
-uint16_t uniffi_libgossip_checksum_method_globalviewmodel_debug_state_updated(void
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_DOC_DATA_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_DOC_DATA_UPDATED
+uint16_t uniffi_libgossip_checksum_method_globalviewmodel_doc_data_updated(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_CONNECTION_STATE_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_GLOBALVIEWMODEL_CONNECTION_STATE_UPDATED
+uint16_t uniffi_libgossip_checksum_method_globalviewmodel_connection_state_updated(void
     
 );
 #endif
@@ -1559,6 +1645,18 @@ uint16_t uniffi_libgossip_checksum_method_nearbydetailsviewmodel_availability_up
 #ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NEARBYDETAILSVIEWMODEL_BIO_DETAILS_UPDATED
 #define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NEARBYDETAILSVIEWMODEL_BIO_DETAILS_UPDATED
 uint16_t uniffi_libgossip_checksum_method_nearbydetailsviewmodel_bio_details_updated(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NEARBYDETAILSVIEWMODEL_SHARE_BIO_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NEARBYDETAILSVIEWMODEL_SHARE_BIO_UPDATED
+uint16_t uniffi_libgossip_checksum_method_nearbydetailsviewmodel_share_bio_updated(void
+    
+);
+#endif
+#ifndef UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NEARBYDETAILSVIEWMODEL_INITIALIZED_UPDATED
+#define UNIFFI_FFIDEF_UNIFFI_LIBGOSSIP_CHECKSUM_METHOD_NEARBYDETAILSVIEWMODEL_INITIALIZED_UPDATED
+uint16_t uniffi_libgossip_checksum_method_nearbydetailsviewmodel_initialized_updated(void
     
 );
 #endif

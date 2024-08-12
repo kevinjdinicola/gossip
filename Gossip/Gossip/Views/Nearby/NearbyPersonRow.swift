@@ -12,12 +12,12 @@ struct NearbyPersonRow: View {
     
     var data: NearbyProfile
     
-    @StateObject
-    var picData: BlobLoader = BlobLoader()
+    @State
+    var pic: UIImage?
 
     var body: some View {
         HStack {
-            CircularImageView(data: picData.data)
+            CircularImageView(uiImage: pic)
                 .frame(width: 50, height: 50)
                 .padding(.trailing, 15)
             VStack(alignment: .leading, content: {
@@ -35,16 +35,20 @@ struct NearbyPersonRow: View {
         }
         .onChange(of: data.pic) {
             Task {
-                await picData.loadHash(hash: data.pic)
+                await loadPic()
             }
             
         }
         .onAppear() {
             Task {
-                await picData.loadHash(hash: data.pic)
+                await loadPic()
             }
         }
         
+    }
+    
+    func loadPic() async {
+        self.pic = data.pic != nil ? await ImageLoader.load(hash: data.pic!) : nil
     }
 }
 

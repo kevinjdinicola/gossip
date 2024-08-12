@@ -16,7 +16,7 @@ use iroh::client::docs::{Entry, LiveEvent};
 use iroh::docs::{AuthorId, ContentStatus, NamespaceId};
 use iroh::docs::store::Query;
 use iroh::net::key::PublicKey;
-use iroh::net::NodeAddr;
+use iroh::net::{NodeAddr, NodeId};
 use iroh::node::FsNode;
 use serde::{Deserialize, Serialize};
 use tokio::fs::File;
@@ -63,6 +63,22 @@ impl Doc {
         self.1.authors()
     }
 
+    pub async fn get_active_connected_peer_count(&self) -> Result<u32> {
+        let peers = self.0.get_sync_peers().await?.unwrap_or_else(|| vec![]);
+        let mut active_peers = 0;
+        for p in peers {
+            let con_info = self.1.node().connection_info(NodeId::from_bytes(&p)?).await?;
+            if let Some(con_info) = con_info {
+                if let Some(last_received) = con_info.last_received() {
+                    if last_received.as_secs() < 15 {
+                        active_peers += 1;
+                    }
+                }
+            }
+        }
+        Ok(active_peers)
+    }
+
     pub async fn start_sync_with_known_peers(&self) -> Result<()> {
         let nodes = self.get_peer_nodes().await;
         self.start_sync(nodes).await?;
@@ -81,8 +97,9 @@ impl Doc {
             Err(anyhow!("Cannot set collection if it is not complete"))
         }
     }
+
+
     pub async fn get_or_download_collection(&self, hash: BlobHash) -> Result<Vec<NamedBlob>> {
-        println!("accessing collection {}", hash);
         let mut collection = self.blobs().get_collection(hash.into()).await;
         let mut did_do_download = false;
         if let Err(_) = collection {

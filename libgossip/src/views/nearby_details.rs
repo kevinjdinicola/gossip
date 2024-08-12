@@ -10,7 +10,7 @@ use crate::identity::IdentityService;
 use crate::identity::model::Identity;
 use crate::nearby::model::{BioDetails, NearbyProfile, Status};
 use crate::nearby::{NearbyService, NearbyServiceEvents};
-use crate::settings::SettingsService;
+use crate::settings::{SettingsEvent, SettingsService, SHARE_NEARBY_PUBLIC_BIO};
 use crate::views::errors::GossipError;
 use crate::views::node_stat::NodeStat;
 
@@ -28,6 +28,10 @@ pub trait NearbyDetailsViewModel: Send + Sync + 'static {
     async fn availability_updated(&self, available: bool);
 
     async fn bio_details_updated(&self, details: BioDetails);
+
+    async fn share_bio_updated(&self, share_bio: bool);
+
+    async fn initialized_updated(&self, initialized: bool);
 }
 
 #[derive(uniffi::Object, Clone)]
@@ -61,9 +65,9 @@ impl Drop for NearbyDetailsViewController {
 #[async_trait]
 impl Starter for NearbyDetailsViewController {
     async fn start(&self) -> Result<(), Error> {
-        println!("observing bio for {}", self.subject_pk);
+        self.view_model.initialized_updated(false).await;
         self.push_data_for_profile(&self.subject_pk).await?;
-
+        self.view_model.initialized_updated(true).await;
         self.listen().await;
         Ok(())
     }
@@ -79,12 +83,12 @@ impl NearbyDetailsViewController {
     }
 
     pub async fn set_share_bio(&self, should_share: bool) -> UIResponse {
-        self.nearby_service.set_share_bio(should_share).await?;
+        self.settings_service.set_setting(SHARE_NEARBY_PUBLIC_BIO, should_share).await?;
         Ok(())
     }
 
-    pub async fn set_gallery_pic(&self, index: u32, data: Vec<u8>) ->  UIResponse {
-        self.nearby_service.set_gallery_pic(index as usize, data).await?;
+    pub async fn set_gallery_pic(&self, pics: Vec<BlobHash>) ->  UIResponse {
+        self.nearby_service.set_gallery_pics(pics).await?;
         Ok(())
     }
 }
@@ -92,13 +96,14 @@ impl NearbyDetailsViewController {
 impl NearbyDetailsViewController {
 
     async fn push_data_for_profile(&self, pk: &PublicKey) -> anyhow::Result<()> {
-        println!("received bio update for currently viewed subject {}", pk);
         let p = self.nearby_service.get_profile_by_key(pk).await?;
         let me = self.identity_service.get_default_identity_pk().await?;
+        let share_it = self.settings_service.get_setting_defaulted(SHARE_NEARBY_PUBLIC_BIO, || false).await?;
         self.view_model.name_updated(p.name).await;
         self.view_model.pic_updated(p.pic).await;
         self.view_model.status_update(p.status).await;
         self.view_model.editable_updated(&me == pk).await;
+        self.view_model.share_bio_updated(share_it).await;
 
         let bio = self.nearby_service.get_bio(&pk).await?;
         let bio= match bio {
@@ -117,17 +122,31 @@ impl NearbyDetailsViewController {
     }
     async fn listen(&self) {
         let mut nearby_sub = self.nearby_service.subscribe();
+        let mut setting_sub = self.settings_service.subscribe();
+        let me = self.identity_service.get_default_identity_pk().await.expect("getting my own identity");
 
         let mut listen = true;
         while listen {
             tokio::select! {
+                Ok(e) = setting_sub.recv() => {
+                    match e {
+                        SettingsEvent::OwnPublicBioUpdated(_) => {
+                            if me == self.subject_pk {
+                                if let Err(e) = self.push_data_for_profile(&self.subject_pk).await {
+                                    eprintln!("failed to push bio data {e}")
+                                }
+                            }
+                        }
+                        _ => {}
+                    }
+                }
                 Ok(e) = nearby_sub.recv() => {
                     match e {
                         NearbyServiceEvents::BioUpdated(pk) => {
                             if self.subject_pk != pk {
                                 break
                             }
-                            if let Err(e) = self.push_data_for_profile(&pk).await {
+                            if let Err(e) = self.push_data_for_profile(&self.subject_pk).await {
                                 eprintln!("failed to push bio data {e}")
                             }
                         }
@@ -139,6 +158,7 @@ impl NearbyDetailsViewController {
                 }
             }
         }
+
     }
 
 }

@@ -13,7 +13,7 @@ struct NearbyContainerView: View {
     @StateObject
     var model: GlobalVM
     
-    @State 
+    @State
     private var isOn = false
     
     @State
@@ -27,40 +27,99 @@ struct NearbyContainerView: View {
     @State
     var statusDebounceTimer:Timer?
     
+    func shouldShowChat() -> Bool {
+        switch model.conState {
+        case .connected(_):
+            return true
+        case .reconnecting:
+            return true
+        case .disconnected:
+            return true
+        default:
+            return false
+        }
+    }
+    
     var body: some View {
         NavigationSplitView {
             List {
-                Section {
-                    HStack {
-                        Toggle("Scanning", isOn: $isOn)
-                    }
-
-                }
-                
-                Section {
-                    VStack {
-                        if !model.debugState.foundGroup {
-                            if model.isScanning {
-                                HStack {
-                                    Text("Scanning").font(.caption)
-                                        .bold()
-                                }
-                            } else {
-                                Text("Nothing to see here")
-                                    .font(.caption)
+                //                Section {
+                //                    HStack {
+                //                        Toggle("Scanning", isOn: $isOn)
+                //                    }
+                //
+                switch model.conState {
+                case .offline:
+                    Section {
+                        Button("Scan Nearby") {
+                            Task {
+                                try await GossipApp.global?.startScanning()
                             }
+                        }.foregroundStyle(Color.accentColor)
+                    }
+                case .searching:
+                    Section {
+                        HStack {
+                            Text("Scanning...")
+                                .italic()
+                                .foregroundStyle(.gray)
+                            Spacer()
+                            ProgressView().progressViewStyle(CircularProgressViewStyle())
                         }
+                        Button("Cancel") {
+                        }.foregroundStyle(Color.red)
+                    }
+                case .connected(let peerCount):
+                    Section {
+                        HStack {
+                            Text("Connected")
+                                .foregroundStyle(.green)
+                            Spacer()
+                            Label(
+                                title: { Text(String(peerCount)).bold() },
+                                icon: { Image(systemName: "point.3.connected.trianglepath.dotted") }
+                            )
+                            .padding(2)
+                            .padding(.horizontal, 7)
+                            .background(.green)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 20))
+                        }
+                        Toggle(isOn: $isOn, label: {
+                            Text("Discoverable")
+                        })
+                    }
+                case .reconnecting:
+                    Section {
+                        HStack {
+                            Text("Reconnecting...")
+                                .italic()
+                                .foregroundStyle(.gray)
+                            Spacer()
+                            ProgressView().progressViewStyle(CircularProgressViewStyle())
+                        }
+                        Button("Cancel") {
+                        }.foregroundStyle(Color.red)
+                    }
+                case .disconnected:
+                    Section {
+                        Text("Disconnected")
+                            .foregroundStyle(.gray)
+                    }
+                case .invalid:
+                    Section {
+                        Text("❌ Invalid State")
+                            .foregroundStyle(.gray)
                     }
                 }
-                
 
                 Section {
                     
                     HStack {
                         Text("Status")
                             .padding(.trailing, 10)
-                            TextField("Whats up?", text:$status)
-
+                        TextField("Whats up?", text:$status)
+                        
                     }
                     NavigationLink(destination: {
                         NearbyPersonDetailsView(pk: model.ownPk)
@@ -68,8 +127,8 @@ struct NearbyContainerView: View {
                         Text("Bio")
                             .padding(.trailing, 10)
                     })
-
-                    if model.debugState.foundGroup {
+                    
+                    if shouldShowChat() {
                         NavigationLink("Chat", destination: {
                             MessageListView(messages: model.messages, composingMessage: $composingMessage, attachments: $attachments) {
                                 Task {
@@ -82,7 +141,7 @@ struct NearbyContainerView: View {
                                         }
                                         attachmentDirStr = attachmentDir.path()
                                     }
-
+                                    
                                     await GossipApp.global?.sendMessage(text:composingMessage, payloadDir: attachmentDirStr);
                                     composingMessage = ""
                                     attachments = []
@@ -91,10 +150,10 @@ struct NearbyContainerView: View {
                             .navigationTitle("Chat")
                         })
                     }
-
-
+                    
+                    
                 }
-                if model.debugState.foundGroup {
+                if shouldShowChat() {
                     Section {
                         
                         ForEach(model.identities, id: \.pk) { iden in
@@ -117,12 +176,13 @@ struct NearbyContainerView: View {
                         })
                     }
                 }
+                
+
                 Section {
-                    Text("docId: \(model.debugState.docId)")
-                    Text("foundGroup: \(model.debugState.foundGroup)")
+                    WideIdView(wideId: model.docData.docId)
                 }
-
-
+                
+                
             }
             .navigationTitle("Nearby")
         } detail: {
@@ -130,11 +190,11 @@ struct NearbyContainerView: View {
         }
         .onChange(of: isOn) {
             Task {
-                await GossipApp.global?.setScanning(shouldScan: isOn)
+                try await GossipApp.global?.setBroadcasting(shouldBroadcast:isOn)
             }
         }
-        .onChange(of: model.isScanning) {
-            isOn = model.isScanning
+        .onChange(of: model.isBroadcasting) {
+            isOn = model.isBroadcasting
         }
         .onChange(of: model.status.text) {
             status = model.status.text;
@@ -146,17 +206,17 @@ struct NearbyContainerView: View {
                     await GossipApp.global?.setStatus(status: status)
                 }
             }
-
+            
         }
-
+        
     }
 }
 
 #Preview {
     BlobCache.shared.setLocalImage("crow", for: WideId(1))
     var model = GlobalVM()
-    model.debugState.foundGroup = false
-    model.isScanning = true
+
+    model.isBroadcasting = true
     model.messages = [
         DisplayMessage(id: 0, text: "caw", isSelf: true),
         DisplayMessage(id: 1, text: "caw!!!!", isSelf: false),

@@ -6,8 +6,12 @@
 //
 
 import SwiftUI
+import BackgroundTasks
 
 struct ControlsContainer: View {
+    
+    @State var debugText = ""
+    
     var body: some View {
         List {
             Section {
@@ -21,6 +25,13 @@ struct ControlsContainer: View {
                         try await GossipApp.global?.startSync()
                     }
                 });
+                WideButton(text: "Print test resutls", backgroundColor: .green, action: {
+                    debugText = BGExperiment.shared.getFileData()
+                })
+               
+            }
+            Section {
+                TextEditor(text: $debugText)
             }
             Section {
                 NodeStatsView()

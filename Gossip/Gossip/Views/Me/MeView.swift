@@ -11,8 +11,9 @@ import PhotosUI
 struct MeView: View {
     
     @State var selectedItems: [PhotosPickerItem] = []
-    @StateObject
-    var picData: BlobLoader = BlobLoader();
+    
+    @State
+    var profilePic: UIImage?
     
     @EnvironmentObject
     var global: GlobalVM;
@@ -33,9 +34,9 @@ struct MeView: View {
                                  matching: .images,
                                  photoLibrary: .shared()) {
                         
-                        CircularImageView(data: picData.data, editable: true)
+                        CircularImageView(uiImage: profilePic, editable: true)
                             .frame(width: 100, height: 100)
-                            .padding(.top, 100)
+                       
                         
                     }
                     VStack {
@@ -77,13 +78,16 @@ struct MeView: View {
             name = global.name
         }
         .onChange(of: global.pic) {
-            if let picHash = global.pic {
-                Task {
-                    await picData.loadHash(hash: picHash)
-                }
-            } else {
-                picData.state = .empty
+            Task {
+                profilePic = global.pic != nil ? await ImageLoader.load(hash: global.pic!) : nil
             }
+
+        }
+        .onAppear {
+            Task {
+                profilePic = global.pic != nil ? await ImageLoader.load(hash: global.pic!) : nil
+            }
+
         }
         .onChange(of: selectedItems) {
             Task {
@@ -113,6 +117,8 @@ struct MeView: View {
     let g = GlobalVM();
     g.name = "kevin"
     g.status = Status(text: "whats up with cats")
+    ImageLoader.setLocalImage("crow", for: WideId(1))
+    g.pic = WideId(1)
     
     return MeView()
         .environmentObject(g);

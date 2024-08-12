@@ -41,6 +41,7 @@ pub trait WeakService<I, O> {
 }
 
 
+
 #[async_trait]
 pub trait Subscriber<E, I, O>: WeakService<I, Self> + Sized + Send
 where
@@ -49,6 +50,7 @@ where
 {
 
      async fn event(&self, event: E) -> anyhow::Result<()>;
+
      fn listen_bc(&self, mut receiver: Receiver<E>) {
         let weak = self.get_weak();
         tokio::spawn(async move {

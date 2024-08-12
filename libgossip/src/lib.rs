@@ -3,21 +3,22 @@ use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::AtomicBool;
 use std::sync::atomic::Ordering::Relaxed;
-use futures_lite::StreamExt;
 
+use futures_lite::StreamExt;
 use tokio::runtime::Runtime;
 use tokio::sync::RwLock;
 use tracing::info;
 use tracing_subscriber::EnvFilter;
-use crate::blob_dispatcher::BlobDataDispatcher;
-use crate::data::PublicKey;
 
+use crate::blob_dispatcher::BlobDataDispatcher;
+use crate::data::{BlobHash, PublicKey};
 use crate::device::DeviceApiServiceProvider;
 use crate::doc::{create_or_load_from_fs_reference, Node};
 use crate::identity::IdentityService;
 use crate::nearby::NearbyService;
 use crate::settings::{Service as SettingsService, settings_file_path};
 use crate::views::{Global, GlobalViewModel};
+use crate::views::errors::GossipError;
 use crate::views::nearby_details::{NearbyDetailsViewController, NearbyDetailsViewModel};
 use crate::views::node_stat::{NodeStat, NodeStatViewModel};
 
@@ -31,7 +32,8 @@ mod views;
 mod events;
 mod nearby;
 mod blob_dispatcher;
-
+mod fingerprinter;
+mod invite;
 
 uniffi::setup_scaffolding!();
 
@@ -71,7 +73,7 @@ impl AppHost {
     }
 }
 
-#[uniffi::export]
+#[uniffi::export(async_runtime = "tokio")]
 impl AppHost {
     #[uniffi::constructor]
     pub fn new(config: AppConfig) -> AppHost {
@@ -121,6 +123,19 @@ impl AppHost {
     pub fn nearby_details(&self, view_model: Arc<dyn NearbyDetailsViewModel>, subject_pk: PublicKey) -> Arc<NearbyDetailsViewController> {
         let _g = self.rt.enter();
         NearbyDetailsViewController::new(subject_pk, view_model, self.identity.clone(), self.nearby.clone(), self.settings.clone())
+    }
+
+    pub async fn load_blob(&self, hash: BlobHash) -> Result<Vec<u8>, GossipError> {
+        let n = self.node();
+        let mut data = n.blobs().read(hash.into()).await?;
+        let bytes = data.read_to_bytes().await?;
+        Ok(bytes.into())
+    }
+
+    pub async fn save_blob(&self, data: Vec<u8>) -> Result<BlobHash, GossipError> {
+        let n = self.node();
+        let outcome = n.blobs().add_bytes(data).await?;
+        Ok(outcome.hash.into())
     }
 
     pub fn blobs(&self) -> Arc<BlobDataDispatcher> {
@@ -184,12 +199,12 @@ mod tests {
     use async_trait::async_trait;
     use futures_util::StreamExt;
     use tokio::runtime::Runtime;
-    use tokio::sync::{Mutex};
+    use tokio::sync::Mutex;
 
     use crate::{AppConfig, AppHost};
-    use crate::data::BlobHash;
-    use crate::doc::Doc;
-    use crate::nearby::model::{DebugState, DisplayMessage, NearbyProfile, Status};
+    use crate::data::{BlobHash, WideId};
+    use crate::nearby::model::{ConState, DisplayMessage, DocData, NearbyProfile, Status};
+    use crate::settings::SHARE_NEARBY_PUBLIC_BIO;
     use crate::views::GlobalViewModel;
 
     const TEST_DIR: &str = "./testtmp";
@@ -223,6 +238,10 @@ mod tests {
     }
     #[async_trait]
     impl GlobalViewModel for DummyVm {
+        async fn own_public_key_updated(&self, pk: WideId) {
+
+        }
+
         async fn name_updated(&self, name: String) {
             let mut lock = self.0.lock().await;
             lock.take().unwrap().send(name).unwrap();
@@ -232,9 +251,6 @@ mod tests {
 
         }
 
-        async fn scanning_updated(&self, scanning: bool) {
-
-        }
 
         async fn nearby_profiles_updated(&self, profiles: Vec<NearbyProfile>) {
 
@@ -244,7 +260,7 @@ mod tests {
 
         }
 
-        async fn debug_state_updated(&self, status: DebugState) {
+        async fn doc_data_updated(&self, status: DocData) {
 
         }
 
@@ -254,6 +270,14 @@ mod tests {
 
         async fn received_one_message(&self, message: DisplayMessage) {
 
+        }
+
+        async fn broadcasting_updated(&self, broadcasting: bool) {
+            todo!()
+        }
+
+        async fn connection_state_updated(&self, state: ConState) {
+            todo!()
         }
     }
 
@@ -277,6 +301,21 @@ mod tests {
         let x = rx.blocking_recv().unwrap();
 
         assert_eq!(x, "kevin")
+    }
+
+    #[test]
+    fn settings() {
+        wipe_test_dir(None);
+
+        fs::create_dir(TEST_DIR).unwrap();
+        let ah = AppHost::new(AppConfig::new(TEST_DIR.into()) );
+        ah.rt.block_on(async {
+            // ah.settings.bullshit().await.unwrap();
+            let value = ah.settings.get_setting_defaulted(SHARE_NEARBY_PUBLIC_BIO, || false).await.unwrap();
+            ah.settings.set_setting(SHARE_NEARBY_PUBLIC_BIO, true).await.unwrap();
+            let new_value = ah.settings.get_setting_defaulted(SHARE_NEARBY_PUBLIC_BIO, || false).await.unwrap();
+            assert_eq!(new_value, true);
+        });
     }
 
     #[test]

@@ -8,22 +8,24 @@
 import Foundation
 
 
-func getLibraryDataPath() -> String {
-    var libraryPath = "";
+func getLibraryDataPath() -> URL {
+    var libraryPath = URL(string: "./")!;
     if let libraryDirectoryURL = FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first {
-        libraryPath = libraryDirectoryURL.appendingPathComponent("data").path
-        if !FileManager.default.fileExists(atPath: libraryPath) {
+        libraryPath = libraryDirectoryURL.appendingPathComponent("data")
+        if !FileManager.default.fileExists(atPath: libraryPath.path) {
             do {
-                try FileManager.default.createDirectory(atPath: libraryPath, withIntermediateDirectories: true)
+                try FileManager.default.createDirectory(atPath: libraryPath.path, withIntermediateDirectories: true)
             } catch {
                 print("failed to create data dir")
             }
             
+            
+            print("Library data path: \(libraryPath.path)")
         }
-        print("Library data path: \(libraryPath)")
     }
     return libraryPath
 }
+    
 
 class RustApp {
     
@@ -35,7 +37,7 @@ class RustApp {
         
         if !isPreview {
             print("starting app host...")
-            let cfg = AppConfig(dataPath: getLibraryDataPath(), logDirective: "ghostlib=debug", devApi: DeviceApiProvider())
+            let cfg = AppConfig(dataPath: getLibraryDataPath().path, logDirective: "ghostlib=debug", devApi: DeviceApiProvider())
             host = AppHost(config: cfg)
         }
         

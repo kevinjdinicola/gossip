@@ -1,6 +1,8 @@
 use std::collections::HashMap;
 use std::ops::Deref;
 use std::sync::{Arc, Weak};
+use std::sync::atomic::AtomicBool;
+use std::sync::atomic::Ordering::Relaxed;
 use std::time::Duration;
 
 use anyhow::{anyhow, Result};
@@ -13,26 +15,27 @@ use iroh::client::docs::Entry;
 use iroh::client::docs::ShareMode::Write;
 use iroh::docs::{Capability, DocTicket};
 use iroh::docs::store::Query;
-use iroh::net::NodeAddr;
+use iroh::net::{NodeAddr, NodeId};
 use tokio::sync::broadcast::{Receiver, Sender};
 use tokio::sync::mpsc::channel;
-use tokio::sync::{Notify, RwLock};
+use tokio::sync::{Notify, RwLock, RwLockWriteGuard};
 
-use crate::ble::{AddressData, BLEGossipBroadcaster, BLEGossipScanner, BluetoothPeerEvent, DocumentData, GossipScannerDelegate, PeerData};
+use crate::ble::{AddressData, BLEGossipBroadcaster, BLEGossipScanner, BluetoothPeerEvent, DocumentData, GossipScannerDelegate, PeerData, PeerState};
 use crate::blob_dispatcher::{CollectionState, LoadCollectionDelegate, NamedBlob};
-use crate::data::{BlobHash, collection_from_dir, PublicKey, replace_or_add_blob, UUID};
+use crate::data::{BlobHash, collection_from_dir, PublicKey, replace_or_add_blob, UUID, WideId};
 use crate::device::DeviceApiServiceProvider;
 use crate::doc::{CoreDoc, Doc, InsertEntry, key_of, Node};
 use crate::events::{broadcast, create_broadcast, Subscriber, WeakService};
 use crate::identity::domain::{IdentityDomain, IdentityDomainResponder};
 use crate::identity::IdentityService;
 use crate::identity::model::{ID_PIC, IDENTITY, Identity, IdentityServiceEvents};
-use crate::nearby::model::{BioDetails, DebugState, display_msg_map, DisplayMessage, NearbyProfile, Post, Status};
-use crate::nearby::NearbyServiceEvents::{AllMessagesUpdated, BioUpdated, DebugStateUpdated, IdentitiesUpdated, ReceivedOneNewMessage, ScanningUpdated};
+use crate::nearby::model::{BioDetails, ConState, DocData, display_msg_map, DisplayMessage, NearbyProfile, Post, Status};
+use crate::nearby::model::ConState::{Connected, Disconnected, Invalid, Offline, Reconnecting, Searching};
+use crate::nearby::NearbyServiceEvents::{AllMessagesUpdated, BioUpdated, ConStateUpdated, DocDataUpdated, IdentitiesUpdated, ReceivedOneNewMessage, BroadcastingUpdated};
 use crate::nearby::peer_calc::{collect_addrs_for_doc, find_best_doc_from_peers};
 use crate::nearby::post::{PostDomain, PostDomainResponder};
 use crate::nearby::State::{Ready, Uninitialized};
-use crate::settings::{SettingsEvent, SettingsService};
+use crate::settings::{CURRENT_NEARBY_DOC_ID, SettingsEvent, SettingsService, SHARE_NEARBY_PUBLIC_BIO, StoreValue};
 
 pub use self::Service as NearbyService;
 
@@ -45,6 +48,7 @@ pub const MESSAGES: &str = "messages";
 
 pub const BIO: &str = "public_bio";
 pub const MESSAGE_PAYLOADS: &str = "message_payloads";
+
 #[derive(Clone)]
 pub struct Service(Arc<InnerService>);
 
@@ -56,11 +60,12 @@ impl Deref for Service {
 #[derive(Clone, Debug)]
 pub enum NearbyServiceEvents {
     IdentitiesUpdated(Vec<NearbyProfile>),
-    ScanningUpdated(bool),
-    DebugStateUpdated(DebugState),
+    BroadcastingUpdated(bool),
+    DocDataUpdated(DocData),
     AllMessagesUpdated(Vec<DisplayMessage>),
     ReceivedOneNewMessage(DisplayMessage),
     BioUpdated(PublicKey),
+    ConStateUpdated(ConState),
 }
 
 pub enum State {
@@ -69,6 +74,7 @@ pub enum State {
     },
     Ready {
         doc: Doc,
+        con_state: ConState,
         doc_stop: Arc<Notify>,
         doc_share: DocTicket,
         identities: IdentityDomain<Service, InnerService>,
@@ -77,7 +83,7 @@ pub enum State {
         should_scan: bool,
         should_broadcast: bool,
         ble_peers: HashMap<UUID, PeerData>,
-        messages: PostDomain<Service, InnerService>
+        messages: PostDomain<Service, InnerService>,
     },
 }
 
@@ -111,7 +117,7 @@ impl PostDomainResponder for Service {
     async fn all_posts_updated(&self, posts: Vec<Post>) -> Result<()> {
         let me = self.identity_service.get_default_identity_pk().await?;
         let dms: Vec<DisplayMessage> = posts.into_iter().enumerate()
-            .map(|(i,m)| { display_msg_map(i, &me, m) })
+            .map(|(i, m)| { display_msg_map(i, &me, m) })
             .collect();
         broadcast(&self.bc, AllMessagesUpdated(dms))?;
         Ok(())
@@ -119,7 +125,7 @@ impl PostDomainResponder for Service {
 
     async fn one_post_updated(&self, count: usize, post: Post) -> Result<()> {
         let me = self.identity_service.get_default_identity_pk().await?;
-        let dm: DisplayMessage = display_msg_map(count-1, &me, post);
+        let dm: DisplayMessage = display_msg_map(count - 1, &me, post);
         broadcast(&self.bc, ReceivedOneNewMessage(dm))?;
         Ok(())
     }
@@ -169,8 +175,11 @@ impl Subscriber<SettingsEvent, InnerService, Service> for Service {
                 SettingsEvent::StatusSettingChanged(s) => {
                     self.update_my_status_on_doc(&s, doc).await?;
                 }
-                SettingsEvent::OwnPublicBioUpdated(e) => {
-                    self.update_my_bio_on_doc(e, doc).await?;
+                SettingsEvent::OwnPublicBioUpdated(_e) => {
+                    self.update_my_bio_on_doc(doc).await?;
+                }
+                SettingsEvent::SettingChanged(key, old, new) => {
+                    self.handle_setting_change(&key, old, new).await?;
                 }
             }
         };
@@ -185,7 +194,7 @@ impl Subscriber<IdentityServiceEvents, InnerService, Service> for Service {
         let lock = self.state.read().await;
         if let Ready { ref doc, .. } = *lock {
             match event {
-                IdentityServiceEvents::DefaultIdentityUpdated(iden)=> {
+                IdentityServiceEvents::DefaultIdentityUpdated(iden) => {
                     self.update_my_identity_on_doc(&iden, doc).await?;
                 }
                 IdentityServiceEvents::DefaultIdentityPicUpdated(hash, size) => {
@@ -234,10 +243,10 @@ impl Service {
 
 
     async fn get_initial_doc(&self, node: &Node) -> Result<CoreDoc> {
-        let previous_nearby = self.settings_service.get_nearby_doc().await?;
+        let previous_nearby: Option<WideId> = self.settings_service.get_setting(CURRENT_NEARBY_DOC_ID).await?;
         let mut doc: Option<CoreDoc> = None;
         if let Some(previous_nearby) = previous_nearby {
-            doc = node.docs().open(previous_nearby).await?;
+            doc = node.docs().open(previous_nearby.into()).await?;
         }
         if matches!(doc, None) {
             doc = Some(node.docs().create().await?);
@@ -252,10 +261,11 @@ impl Service {
             *lock = self.ready_state_with_doc(doc).await;
             drop(lock);
 
-            self.update_ble_broadcast(true).await?;
+            self.update_ble_broadcast(false).await?;
             self.setup_scanning().await?;
             self.update_scanning(false).await?;
 
+            self.start_connected_state_loop().await;
             self.load_doc().await?;
             // this will use this async task and loop in it
             self.listen_to_other_services().await?;
@@ -267,19 +277,42 @@ impl Service {
 
     pub async fn get_profile_by_key(&self, pk: &PublicKey) -> Result<NearbyProfile> {
         let lock = self.state.read().await;
-        if let Ready { ref identities, ref statuses, ..} = *lock {
+        if let Ready { ref identities, ref statuses, .. } = *lock {
             let pics = identities.pics();
-            let iden = identities.identities_ref().into_iter().find(|i|&i.pk == pk);
+            let iden = identities.identities_ref().into_iter().find(|i| &i.pk == pk);
             if let Some(iden) = iden {
                 return Ok(NearbyProfile {
                     pk: iden.pk,
                     name: iden.name.clone(),
                     pic: pics.get(pk).copied(),
                     status: statuses.get(pk).cloned().unwrap_or(Status { text: String::default() }),
-                })
+                });
             }
         }
         Err(anyhow!("profile does not exist here"))
+    }
+
+    pub async fn get_con_state(&self) -> ConState {
+        let lock = self.state.read().await;
+        match *lock {
+            Ready { ref con_state, .. } => { *con_state }
+            _ => Offline
+        }
+    }
+
+    pub async fn start_scanning(&self) -> Result<()> {
+        self.update_scanning(true).await?;
+        self.update_ble_broadcast(true).await?;
+
+        self.calculate_and_update_con_state().await?;
+        Ok(())
+    }
+
+    pub async fn cancel_connection_attempt(&self) -> Result<()> {
+        self.update_scanning(false).await?;
+        self.update_ble_broadcast(false).await?;
+        self.calculate_and_update_con_state().await?;
+        Ok(())
     }
 
     async fn ready_state_with_doc(&self, doc: Doc) -> State {
@@ -289,6 +322,7 @@ impl Service {
 
         Ready {
             doc,
+            con_state: ConState::Disconnected,
             doc_stop: Arc::new(Notify::new()),
             doc_share: ticket,
             identities,
@@ -297,28 +331,27 @@ impl Service {
             found_group: false,
             should_scan: false,
             should_broadcast: false,
-            messages
+            messages,
         }
     }
 
     pub async fn start_sync(&self) -> Result<()> {
         let lock = self.state.read().await;
         if let Ready { ref doc, .. } = *lock {
+            println!("syncing with known peers!");
             doc.start_sync_with_known_peers().await?;
         }
         Ok(())
     }
 
-    pub async fn push_debug_state(&self) {
+    pub async fn broadcast_doc_data(&self) {
         let lock = self.state.read().await;
-        if let Ready { ref doc, ref found_group,..} = *lock {
-            let ds = DebugState {
-                doc_id: doc.0.id().to_string(),
-                found_group: *found_group
+        if let Ready { ref doc, ref found_group, .. } = *lock {
+            let ds = DocData {
+                doc_id: doc.0.id().into()
             };
-
             drop(lock);
-            broadcast(&self.bc, DebugStateUpdated(ds)).expect("push debug state");
+            broadcast(&self.bc, DocDataUpdated(ds)).expect("broadcast doc data");
         }
     }
 
@@ -337,15 +370,17 @@ impl Service {
     }
 
 
-    pub async fn should_scan(&self) -> bool {
+    pub async fn should_broadcast(&self) -> bool {
         let lock = self.state.read().await;
-        if let Ready { ref should_scan, ..} = *lock {
-            return *should_scan
+        if let Ready { ref should_broadcast, .. } = *lock {
+            return *should_broadcast;
         }
-        return false
+        return false;
     }
 
     pub async fn leave_group(&self) -> Result<()> {
+        self.update_scanning(false).await?;
+        self.update_ble_broadcast(false).await?;
         let mut state = self.state.write().await;
         if let Ready { ref doc, ref doc_stop, .. } = *state {
             let node = doc.1.clone();
@@ -363,6 +398,7 @@ impl Service {
         };
         drop(state);
         self.load_doc().await?;
+        self.calculate_and_update_con_state().await?;
 
         Ok(())
     }
@@ -379,7 +415,8 @@ impl Service {
                     self.ble_scanner.stop_scanning();
                 }
             }
-            broadcast(&self.bc, ScanningUpdated(*should_scan))?;
+        } else {
+            println!("wtf happened here??");
         }
 
         Ok(())
@@ -387,10 +424,12 @@ impl Service {
 
     async fn evaluate_peers_for_connection(&self) -> Result<()> {
         let lock = self.state.read().await;
-        let new_doc = if let Ready { ref doc,
+        let new_doc = if let Ready {
+            ref doc,
             ref doc_share,
             ref doc_stop,
-            ref ble_peers, .. } = *lock
+            ref ble_peers, ..
+        } = *lock
         {
             let my_doc = get_document_data(doc_share);
             let best_new_doc: DocumentData = find_best_doc_from_peers(&my_doc, &ble_peers);
@@ -414,7 +453,7 @@ impl Service {
             let new_doc = doc.1.docs().import(doc_ticket.clone()).await?;
             doc_stop.notify_waiters(); // we're about to LEAVE THE OLD DOC BEHIND VERY IMPORTANT,
             Doc(new_doc, doc.1.clone())
-        } else { return Ok(()) };
+        } else { return Ok(()); };
         drop(lock);
 
         {
@@ -427,7 +466,7 @@ impl Service {
         Ok(())
     }
 
-    async fn update_ble_broadcast(&self, new_should_broadcast: bool) -> Result<()> {
+    pub async fn update_ble_broadcast(&self, new_should_broadcast: bool) -> Result<()> {
         let mut lock = self.state.write().await;
         if let Ready { ref doc_share, ref mut should_broadcast, ref mut found_group, .. } = *lock {
             *should_broadcast = new_should_broadcast;
@@ -444,6 +483,7 @@ impl Service {
             } else {
                 self.ble_broadcaster.stop();
             }
+            broadcast(&self.bc, BroadcastingUpdated(new_should_broadcast))?;
         }
 
         Ok(())
@@ -465,9 +505,28 @@ impl Service {
         Ok(())
     }
 
-    pub async fn update_my_bio_on_doc(&self, entry: Entry, doc: &Doc) -> Result<()> {
-        println!("propagating my bio doc from settings to this nearby doc, i am {}, bio hash is {}", entry.author(), entry.content_hash());
-        doc.set_hash(doc.me().await, BIO, entry.content_hash(), entry.content_len()).await?;
+    pub async fn update_my_bio_on_doc(&self, doc: &Doc) -> Result<()> {
+        let should_post_bio = self.settings_service.get_setting_defaulted(SHARE_NEARBY_PUBLIC_BIO, || false).await?;
+        if should_post_bio {
+            if let Some(entry) = self.settings_service.get_bio_entry().await? {
+                println!("propagating my bio doc from settings to this nearby doc, i am {}, bio hash is {}", entry.author(), entry.content_hash());
+                doc.set_hash(doc.me().await, BIO, entry.content_hash(), entry.content_len()).await?;
+            }
+        } else {
+            doc.del(doc.me().await, BIO).await?;
+        }
+
+        Ok(())
+    }
+
+    async fn handle_setting_change(&self, key: &str, _old: Option<StoreValue>, new: StoreValue) -> Result<()> {
+        match (key, new) {
+            (SHARE_NEARBY_PUBLIC_BIO, StoreValue::Bool(_)) => {
+                let doc = self.clone_doc().await?;
+                self.update_my_bio_on_doc(&doc).await?;
+            }
+            _ => {}
+        }
         Ok(())
     }
     pub async fn put_self_on_doc(&self, doc: &Doc) -> Result<()> {
@@ -481,9 +540,7 @@ impl Service {
                 self.update_my_pic_on_doc(pic_hash, size, doc).await?;
             }
 
-            if let Some(entry) = self.settings_service.get_bio_entry().await? {
-                self.update_my_bio_on_doc(entry, doc).await?;
-            }
+            self.update_my_bio_on_doc(&doc).await?;
         } else {
             println!("Couldn't put self on doc cuz no identity, but will do it when its there!");
         }
@@ -494,30 +551,34 @@ impl Service {
         let doc = self.clone_doc().await?;
         let me: PublicKey = doc.me().await.into();
 
-        let entry = doc.0.get_exact(owner.into(), BIO, false).await?;
-        let collection = match entry {
-            None => {
-                if &me == owner {
-                    // allow me to return a blank bio to myself
-                    vec![]
-                } else {
-                    return Ok(None)
+        let collection: Vec<NamedBlob> = if &me == owner {
+            // only ever read my bio from settings, who cares whats on the doc
+            // they should always be syncd
+            self.settings_service.get_bio().await?
+        } else {
+            let entry = doc.0.get_exact(owner.into(), BIO, false).await?;
+            match entry {
+                None => {
+                    // BAILING OUT OF ENTIRE FUNCTION HERE
+                    return Ok(None);
                 }
-            }
-            Some(e) => {
-                doc.get_or_download_collection(e.content_hash().into()).await?
+                Some(e) => {
+                    doc.get_or_download_collection(e.content_hash().into()).await?
+                }
             }
         };
 
         let mut bio_text_hash: Option<BlobHash> = None;
-        let pics: Vec<NamedBlob> = collection.into_iter().filter(|b| {
-            if &b.name == "bio_text.txt" {
-
-                bio_text_hash = Some(b.hash);
-                return false;
-            }
-            return true;
-        }).collect();
+        let pics: Vec<BlobHash> = collection.into_iter()
+            .filter(|b| {
+                if &b.name == "bio_text.txt" {
+                    bio_text_hash = Some(b.hash);
+                    return false;
+                }
+                return true;
+            })
+            .map(|nb| nb.hash)
+            .collect();
         let bio_text: String = match bio_text_hash {
             None => { String::default() }
             Some(hash) => { doc.read_blob_by_hash(hash.into()).await? }
@@ -531,7 +592,6 @@ impl Service {
             editable,
             pics,
         }))
-
     }
 
     pub async fn set_bio_text(&self, bio_text: String) -> Result<()> {
@@ -543,31 +603,21 @@ impl Service {
         Ok(())
     }
 
-    pub async fn set_share_bio(&self, share_bio: bool) -> Result<()> {
-        // TODO figure this out
-        Ok(())
-    }
-
-    pub async fn set_gallery_pic(&self, index: usize, pic: Vec<u8>) -> Result<()>{
-        if index > 9 {
-            return Err(anyhow!("only supports up to 9 gallery pics"))
+    pub async fn set_gallery_pics(&self, pics: Vec<BlobHash>) -> Result<()> {
+        if pics.len() > 9 {
+            return Err(anyhow!("only supports up to 9 gallery pics"));
         };
-        let blob_key = format!("{index}.png");
-        let doc = self.clone_doc().await?;
-        let new_pic_blob = doc.1.blobs().add_bytes(pic).await?;
 
+        // get rid of old pics, keep non pic stuff
         let mut bio_blobs = self.settings_service.get_bio().await?;
-        replace_or_add_blob(&blob_key, new_pic_blob.hash.into(), &mut bio_blobs).await;
+        bio_blobs = bio_blobs.into_iter().filter(|b| b.name == "bio_text.txt").collect();
+
+        // set new pics
+        let mut pics: Vec<NamedBlob> = pics.into_iter().enumerate().map(|(i, b)| NamedBlob { name: format!("{i}.png"), hash: b }).collect();
+        bio_blobs.append(&mut pics);
+
         self.settings_service.set_bio(bio_blobs).await?;
 
-        Ok(())
-    }
-
-    pub async fn clear_gallery_pic(&self, index: usize) -> Result<()> {
-        let mut bio_blobs = self.settings_service.get_bio().await?;
-        let blob_key = format!("{index}.png");
-        bio_blobs = bio_blobs.into_iter().filter(|b| b.name == blob_key).collect();
-        self.settings_service.set_bio(bio_blobs).await?;
         Ok(())
     }
 
@@ -576,14 +626,15 @@ impl Service {
         // load existing data
         let outs = {
             let mut lock = self.state.write().await;
-             if let Ready {
+            if let Ready {
                 ref mut doc,
                 ref doc_stop,
                 ref mut found_group,
                 ref mut identities,
                 ref doc_share,
                 ref mut messages,
-                ref mut statuses, .. } = *lock
+                ref mut statuses, ..
+            } = *lock
             {
                 // should i combine this with initialize?
                 identities.set_doc(doc);
@@ -607,7 +658,8 @@ impl Service {
                     statuses.insert(se.author().into(), status);
                 }
                 println!("got here");
-                self.settings_service.set_nearby_doc(doc.id()).await?;
+                let id: WideId = doc.id().into();
+                self.settings_service.set_setting(CURRENT_NEARBY_DOC_ID, id).await?;
                 Some((doc.id(), doc.subscribe().await?, doc_stop.clone()))
             } else { None }
         };
@@ -616,10 +668,10 @@ impl Service {
 
         // we may have opened up a doc that already exists and has people on it
         self.check_if_found_group().await?;
-        self.push_debug_state().await;
+        self.broadcast_doc_data().await;
         self.identities_did_update(false).await?;
         self.broadcast_all_messages().await?;
-        self.update_scanning(false).await?;
+
         println!("about here now");
 
         let (id, mut stream, doc_stop_clone) = outs.unwrap();
@@ -650,7 +702,8 @@ impl Service {
     async fn handle_insert_entry(&self, e: InsertEntry) -> Result<()> {
         let mut lock = self.state.write().await;
         if let Ready {
-            ref mut messages, ref mut identities, ref doc,  ..} = *lock
+            ref mut messages, ref mut identities, ref doc, ..
+        } = *lock
         {
             match key_of(&e.entry).as_ref() {
                 PUBLIC_STATUS => {
@@ -686,7 +739,7 @@ impl Service {
         let post = Post::new(me).body(text).payload(payload);
 
         let mut lock = self.state.write().await;
-        if let Ready { ref mut messages,..  } = *lock {
+        if let Ready { ref mut messages, .. } = *lock {
             messages.create_post(post).await?;
         }
 
@@ -698,7 +751,7 @@ impl Service {
         let lock = self.state.read().await;
         if let Ready { ref messages, .. } = *lock {
             let msgs: Vec<DisplayMessage> = messages.posts().await.into_iter().enumerate()
-                .map(|(i,m)| { display_msg_map(i, &me, m) })
+                .map(|(i, m)| { display_msg_map(i, &me, m) })
                 .collect();
             broadcast(&self.bc, AllMessagesUpdated(msgs))?;
         };
@@ -707,7 +760,7 @@ impl Service {
 
     pub async fn clone_doc(&self) -> Result<Doc> {
         let lock = self.state.read().await;
-        if let Ready { ref doc,.. } = *lock {
+        if let Ready { ref doc, .. } = *lock {
             let doc = doc.clone();
             drop(lock);
             Ok(doc)
@@ -732,29 +785,93 @@ impl Service {
 
     pub async fn check_if_found_group(&self) -> Result<()> {
         let mut lock = self.state.write().await;
-        if let Ready { ref mut found_group, ref identities,.. } = *lock {
+
+        let found_group = if let Ready { ref mut found_group, ref identities, .. } = *lock {
             if identities.identities_ref().len() > 1 {
                 // we DID find a group
+                println!("we DID find a group, this means we have more than 1 identity");
+
                 *found_group = true;
+                drop(lock);
+                self.calculate_and_update_con_state().await?;
+                self.ble_broadcaster.set_peer_state(PeerState::Settled.into());
+                true
             } else {
                 *found_group = false;
+                drop(lock);
+                self.ble_broadcaster.set_peer_state(PeerState::Scanning.into());
+                false
             }
-            self.ble_broadcaster.set_peer_state(if *found_group { 1 } else { 0 })
-        };
-        drop(lock);
-        self.push_debug_state().await;
+        } else { false };
+
+        if found_group {
+            // this is being done here because update scanning acquires a lock
+            self.update_scanning(false).await?;
+        }
         Ok(())
     }
 
-    pub async fn did_find_group(&self) -> Result<()> {
-        {
-            let mut lock = self.state.write().await;
-            if let Ready { ref mut found_group, .. } = *lock {
-                *found_group = true;
+    async fn start_connected_state_loop(&self) {
+        let weak = self.get_weak();
+        tokio::spawn(async move {
+            println!("🌝STARTING A CONSTATE LOOP");
+            loop {
+                if let Some(s) = Self::from_weak(&weak) {
+                    let (old_state, new_state) = s.calculate_and_update_con_state().await.expect("calculate and update con state in loop");
+                    let recheck_delay_seconds = match (old_state, new_state) {
+                        // only really concerned with the connected states
+                        (_, Connected(_)) => {
+                            5
+                        }
+                        (Connected(_), Reconnecting) => {
+                            println!("just detected a disconnection! attempting to reconnected");
+                            s.update_ble_broadcast(true).await.expect("tried to update some bullshit");
+                            s.start_sync().await.unwrap();
+                            5
+                        }
+                        (Reconnecting, Reconnecting) => {
+                            5
+                        }
+                        _ => { 5 }
+                    };
+                    tokio::time::sleep(Duration::from_secs(recheck_delay_seconds)).await;
+                } else {
+                    break;
+                }
             }
+            println!("😕CONSTATE LOOP ENDED");
+        });
+    }
+
+    pub async fn calculate_and_update_con_state(&self) -> Result<(ConState, ConState)> {
+        let mut lock = self.state.write().await;
+        if let Ready { ref found_group, ref should_broadcast, ref should_scan, ref doc, ref mut con_state, .. } = *lock {
+            let active_peers = doc.get_active_connected_peer_count().await?;
+            let new_state = match (found_group, should_broadcast, should_scan, active_peers) {
+                (false, false, false, _) => { Offline }
+                (false, true, true, 0) => { Searching }
+                (true, _, false, peer_count) if peer_count > 0 => { Connected(peer_count) }
+                (true, _, false, 0) => { Reconnecting }
+                // TODO implement some kind of disconnection reconnection logic
+                // like if they move too far, i can't reconnected
+                // or if its been too long
+                // (true, _, false, 0) => { Disconnected }
+                _ => {
+                    println!("some weird state");
+                    Invalid
+                }
+            };
+            let old_state = *con_state;
+
+            if new_state != old_state {
+                *con_state = new_state;
+                drop(lock);
+                broadcast(&self.bc, ConStateUpdated(new_state))?;
+            }
+            Ok((old_state, new_state))
+        } else {
+            Ok((Offline, Offline))
         }
-        self.push_debug_state().await;
-        Ok(())
     }
 
     pub async fn status_update(&self, pk: PublicKey, status: Status) -> Result<()> {
@@ -784,6 +901,6 @@ impl WeakService<InnerService, Service> for Service {
     }
 
     fn from_weak(weak: &Weak<InnerService>) -> Option<Service> {
-        weak.upgrade().map(|i|Service(i))
+        weak.upgrade().map(|i| Service(i))
     }
 }

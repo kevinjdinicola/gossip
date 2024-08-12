@@ -25,7 +25,7 @@ struct MessageView: View {
                     .cornerRadius(10)
             }
             ForEach(payloadDel.blobs, id: \.name) { item in
-                BlobImage(blobHash: item.hash)
+                MessagingImage(blobHash: item.hash)
                     .clipShape(RoundedRectangle(cornerRadius: 10))
                     .aspectRatio(contentMode: .fit)
                     .frame(maxHeight: 200)

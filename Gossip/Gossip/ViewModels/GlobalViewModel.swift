@@ -10,24 +10,23 @@ import Foundation
 @Observable
 @MainActor
 class GlobalVM: GlobalViewModel, ObservableObject {
+
+    
     
     var ownPk: WideId = WideId(0)
     var name: String = ""
     var status: Status = Status(text: "")
     var pic: WideId?
+    var conState: ConState = ConState.offline
     
     var identities: [NearbyProfile] = []
     var messages: [DisplayMessage] = []
-    var isScanning: Bool = false
+    var isBroadcasting: Bool = false
     
-    var debugState: DebugState = DebugState(docId: "", foundGroup: false)
+    var docData: DocData = DocData(docId: WideId(0))
     
     func nameUpdated(name: String) async {
         self.name = name
-    }
-
-    func scanningUpdated(scanning: Bool) async {
-        self.isScanning = scanning
     }
     
     func nearbyProfilesUpdated(profiles: [NearbyProfile]) async {
@@ -42,8 +41,9 @@ class GlobalVM: GlobalViewModel, ObservableObject {
         self.pic = pic
     }
     
-    func debugStateUpdated(status: DebugState) async {
-        self.debugState = status
+    
+    func docDataUpdated(status: DocData) async {
+        self.docData = status
     }
     
     func allMessagesUpdated(messages: [DisplayMessage]) async {
@@ -57,6 +57,16 @@ class GlobalVM: GlobalViewModel, ObservableObject {
     func ownPublicKeyUpdated(pk: WideId) async {
         self.ownPk = pk
     }
+    
+    func connectionStateUpdated(state: ConState) async {
+        self.conState = state
+    }
+    
+    func broadcastingUpdated(broadcasting: Bool) async {
+        self.isBroadcasting =  broadcasting
+    }
+    
+    
     
     
     

@@ -9,11 +9,11 @@ use crate::events::{start_with, Starter};
 use crate::identity::IdentityService;
 use crate::identity::model::{Identity, IdentityServiceEvents};
 use crate::nearby::{NearbyService, NearbyServiceEvents};
-use crate::nearby::model::{DebugState, DisplayMessage, NearbyProfile, Status};
+use crate::nearby::model::{ConState, DocData, DisplayMessage, NearbyProfile, Status};
 use crate::settings::{SettingsEvent, SettingsService};
 use crate::views::errors::GossipError;
 
-mod errors;
+pub mod errors;
 pub mod node_stat;
 pub mod nearby_details;
 
@@ -24,10 +24,12 @@ pub trait GlobalViewModel: Send + Sync + 'static {
     async fn own_public_key_updated(&self, pk: WideId);
     async fn name_updated(&self, name: String);
     async fn pic_updated(&self, pic: BlobHash);
-    async fn scanning_updated(&self, scanning: bool);
+    async fn broadcasting_updated(&self, broadcasting: bool);
     async fn nearby_profiles_updated(&self, profiles: Vec<NearbyProfile>);
     async fn status_updated(&self, status: Status);
-    async fn debug_state_updated(&self, status: DebugState);
+    async fn doc_data_updated(&self, status: DocData);
+
+    async fn connection_state_updated(&self, state: ConState);
 
     async fn all_messages_updated(&self, messages: Vec<DisplayMessage>);
 
@@ -56,6 +58,7 @@ impl Global {
 impl Starter for Global {
     async fn start(&self) -> std::result::Result<(), Error> {
         self.view_model.status_updated(self.settings_service.get_status().await?).await;
+        self.view_model.connection_state_updated(self.nearby_service.get_con_state().await).await;
         if let Some(iden) = self.identity_service.get_default_identity().await? {
             self.view_model.own_public_key_updated(iden.pk).await;
             self.view_model.name_updated(iden.name).await;
@@ -63,7 +66,7 @@ impl Starter for Global {
                 self.view_model.pic_updated(pic).await;
             }
         }
-        self.view_model.scanning_updated(self.nearby_service.should_scan().await).await;
+        self.view_model.broadcasting_updated(self.nearby_service.should_broadcast().await).await;
 
 
         self.listen().await;
@@ -78,7 +81,7 @@ impl Global {
         let mut nearby_sub = self.nearby_service.subscribe();
         let mut settings_sub = self.settings_service.subscribe();
 
-        self.nearby_service.push_debug_state().await;
+        self.nearby_service.broadcast_doc_data().await;
         self.nearby_service.broadcast_all_messages().await.expect("broadcast all messages");
 
         let mut listen = true;
@@ -90,7 +93,7 @@ impl Global {
                             self.view_model.status_updated(s).await;
                         }
                         SettingsEvent::OwnPublicBioUpdated(_) => {}
-                    }
+                        SettingsEvent::SettingChanged(_,_,_) => {}}
                 }
                 Ok(e) = iden_sub.recv() => {
                     match e {
@@ -104,14 +107,14 @@ impl Global {
                 }
                 Ok(e) = nearby_sub.recv() => {
                     match e {
-                        NearbyServiceEvents::ScanningUpdated(val) => {
-                            self.view_model.scanning_updated(val).await;
+                        NearbyServiceEvents::BroadcastingUpdated(val) => {
+                            self.view_model.broadcasting_updated(val).await;
                         },
                         NearbyServiceEvents::IdentitiesUpdated(idens) => {
                             self.view_model.nearby_profiles_updated(idens).await;
                         },
-                        NearbyServiceEvents::DebugStateUpdated(state) => {
-                            self.view_model.debug_state_updated(state).await;
+                        NearbyServiceEvents::DocDataUpdated(state) => {
+                            self.view_model.doc_data_updated(state).await;
                         },
                         NearbyServiceEvents::AllMessagesUpdated(msgs) => {
                             self.view_model.all_messages_updated(msgs).await;
@@ -119,8 +122,11 @@ impl Global {
                         NearbyServiceEvents::ReceivedOneNewMessage(msg) => {
                             self.view_model.received_one_message(msg).await;
                         },
-
-                    NearbyServiceEvents::BioUpdated(_) => {}}
+                        NearbyServiceEvents::ConStateUpdated(c) => {
+                            self.view_model.connection_state_updated(c).await;
+                        }
+                        _ => {}
+                    }
                 },
                 else => {
                     listen = false;
@@ -134,14 +140,13 @@ impl Global {
 impl Global {
 
     pub async fn leave_nearby_group(&self) -> Result<(), GossipError> {
-        self.nearby_service.update_scanning(false).await?;
         self.nearby_service.leave_group().await?;
         Ok(())
     }
 
-    pub async fn set_scanning(&self, should_scan: bool) {
-        self.nearby_service.update_scanning(should_scan).await.expect("update scanning")
-
+    pub async fn set_broadcasting(&self, should_broadcast: bool)-> Result<(), GossipError> {
+        self.nearby_service.update_ble_broadcast(should_broadcast).await?;
+        Ok(())
     }
 
     pub async fn set_status(&self, status: String) {
@@ -155,6 +160,16 @@ impl Global {
 
     pub async fn start_sync(&self) -> Result<(), GossipError> {
         self.nearby_service.start_sync().await?;
+        Ok(())
+    }
+
+    pub async fn cancel_connection_attempt(&self) -> Result<(), GossipError> {
+        self.nearby_service.cancel_connection_attempt().await?;
+        Ok(())
+    }
+
+    pub async fn start_scanning(&self) -> Result<(), GossipError> {
+        self.nearby_service.start_scanning().await?;
         Ok(())
     }
 

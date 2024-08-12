@@ -10,7 +10,15 @@ import SwiftUI
 @Observable
 @MainActor
 class NearbyPersonDetailsVM: ObservableObject, NearbyDetailsViewModel {
-   
+    func shareBioUpdated(shareBio: Bool) async {
+        self.shareBio = shareBio
+    }
+    
+
+    // Props
+    
+    var initialized: Bool = false
+    var shareBio: Bool = false
 
     var isAvailable: Bool = false
     var isEditable: Bool = false
@@ -21,11 +29,15 @@ class NearbyPersonDetailsVM: ObservableObject, NearbyDetailsViewModel {
     var allowsInvite: Bool = false
     
     var bioText = ""
-    var galleryPics: [NamedBlob] = []
+    var galleryPics: [WideId] = []
     
-    func nameUpdated(name: String) async {
-        self.name = name
+    var enumeratedGalleryPics: [(String, Int, WideId)] {
+        return self.galleryPics.enumerated().map{ idx,hash in
+            ("\(idx)_\(hash)", idx, hash)
+        }
     }
+    
+    // Setters
     
     func statusUpdate(status: Status) async {
         self.status = status.text
@@ -48,5 +60,13 @@ class NearbyPersonDetailsVM: ObservableObject, NearbyDetailsViewModel {
         self.bioText = details.text
         self.galleryPics = details.pics
     }
+    func nameUpdated(name: String) async {
+        self.name = name
+    }
+    
+    func initializedUpdated(initialized: Bool) async {
+        self.initialized = initialized
+    }
+    
   
 }

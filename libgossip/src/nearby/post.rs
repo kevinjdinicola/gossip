@@ -1,3 +1,4 @@
+use std::future::Future;
 use std::marker::PhantomData;
 use std::sync::Weak;
 
@@ -5,6 +6,7 @@ use anyhow::Result;
 use async_trait::async_trait;
 use iroh::client::blobs::BlobStatus;
 use iroh::docs::store::{Query, SortBy, SortDirection};
+use tokio::spawn;
 
 use crate::doc::{Doc, InsertEntry};
 use crate::events::WeakService;
@@ -95,21 +97,31 @@ where
             });
             if let Some(resp) = S::from_weak(&self.responder) {
                 let posts = self.posts.clone();
-                tokio::spawn(async move {
-                    resp.all_posts_updated(posts).await.expect("fuck");
-                });
+                spawn(async move { resp.all_posts_updated(posts).await.expect("fuck") });
 
             }
         } else {
-            if let Some(resp) = S::from_weak(&self.responder) {
-                let post = self.posts.last().cloned().unwrap();
-                tokio::spawn(async move {
-                    resp.one_post_updated(count, post).await.expect("fuck");
-                });
-            }
+            let post = self.posts.last().cloned().unwrap();
+            respond(&self.responder, move |resp: S| async move {
+                resp.one_post_updated(count, post).await
+            }).await;
+            // if let Some(resp) = S::from_weak(&self.responder) {
+            //     let post = self.posts.last().cloned().unwrap();
+            //     spawn(async move { resp.one_post_updated(count, post).await.expect("fuck") });
+            // }
         }
 
         Ok(())
     }
 }
 
+async fn respond<I, F, S, Fut>(weak: &Weak<I>, call: F)
+where
+    F: FnOnce(S) -> Fut + Send + 'static,
+    Fut: Future<Output = Result<(), anyhow::Error>> + Send + 'static,
+    S: WeakService<I, S> + Send +'static
+{
+    if let Some(resp) = S::from_weak(weak) {
+        spawn(async move { call(resp).await.unwrap() });
+    }
+}

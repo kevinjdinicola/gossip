@@ -2,9 +2,22 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use crate::blob_dispatcher::NamedBlob;
 
-use crate::data::{BlobHash, PublicKey};
+use crate::data::{BlobHash, PublicKey, WideId};
 use crate::nearby::MESSAGE_PAYLOADS;
 use crate::nearby::MESSAGES;
+
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(uniffi::Enum)]
+pub enum ConState {
+    Offline,
+    Searching,
+    // how many peers
+    Connected(u32),
+    Reconnecting,
+    Disconnected,
+    Invalid
+}
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
 #[derive(uniffi::Record)]
@@ -31,9 +44,8 @@ pub struct DisplayMessage {
 
 #[derive(Debug, Clone)]
 #[derive(uniffi::Record)]
-pub struct DebugState {
-    pub doc_id: String,
-    pub found_group: bool,
+pub struct DocData {
+    pub doc_id: WideId,
 }
 
 
@@ -51,7 +63,7 @@ pub struct BioDetails {
     pub text: String,
     pub shared: bool,
     pub editable: bool,
-    pub pics: Vec<NamedBlob>
+    pub pics: Vec<BlobHash>
 }
 
 #[derive(Serialize, Deserialize, PartialEq, Debug, Clone)]
